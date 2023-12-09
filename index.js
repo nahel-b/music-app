@@ -1,10 +1,16 @@
 const express = require('express');
 const session = require('express-session');
+const request = require('request');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
+const crypto_manager = require('./crypto_manager.js');
 const database = require('./database.js');
 const traitement_image = require('./traitement_image.js');
+const querystring = require("querystring");
+
+console.log(process.env['SERVER_URL'] + "/spotifycallback")
+
 //require('dotenv').config();
 
 
@@ -49,8 +55,13 @@ app.get('/', async (req, res) => {
 
   const auth = await database.verifAuthLevel(req, res, "/")
   if (auth >= 0) {
-
-    res.render('accueil', { username: req.session.utilisateur.username });
+    const music_token = await database.getUserMusicToken(req.session.utilisateur.username)
+    if( music_token == -1 || (music_token[0] == -1) && (music_token[0] == music_token[1]) && (music_token[1] == music_token[2]) )
+    {
+      res.redirect("/connexion-musique")
+      return
+    }
+    res.render('acceuil', { username: req.session.utilisateur.username });
   } else {
     res.redirect('/login');
   }
@@ -77,6 +88,7 @@ app.post('/login', async (req, res) => {
     if (modified) {
       req.session.utilisateur = { session_id: randomId, username: utilisateur.username };
       res.redirect('/');
+      return
     }
     else {
       res.render('login', { erreur: 'Une erreur est survenue lors de la connexion. Veuillez réessayer.' });
@@ -171,7 +183,6 @@ let song_list=
     preview_url: 'https://p.scdn.co/mp3-preview/8da0908f37f3c7aaf3c5eb794a06f49aca838de3?cid=0c78a05e835340c6999c6e41421325a9'
   }]
 
-
 for(const song of song_list)
 {
   traitement_image.isTextReadable(song.image_urls[0]).then((result) => 
@@ -181,13 +192,152 @@ for(const song of song_list)
   })
 }
 
-
-
-
 //login
 app.get('/recommandation', (req, res) => {
   res.render('recommandation', { erreur: null, song_list });
 });
+
+const spotify_client_id = process.env['spotify_client_id']
+const spotify_client_secret = process.env['spotify_client_secret']
+app.get("/spotify",async (req, res) => {
+
+  
+  const auth = await database.verifAuthLevel(req, res, "/")
+  if (auth < 0) {
+    res.redirect('/login');
+    return
+  }
+  
+  //const username = req.session.utilisateur.username
+  //const state = JSON.stringify({username:username});
+  const scope = "user-read-private user-library-read playlist-modify-public playlist-modify-private user-library-modify playlist-read-private playlist-read-collaborative";
+  res.redirect("https://accounts.spotify.com/authorize?" +
+    querystring.stringify({
+      response_type: "code",
+      client_id: spotify_client_id,
+      scope: scope,
+      //state: state,
+      redirect_uri: process.env['SERVER_URL'] + "/spotifycallback"
+    }));
+});
+
+app.get("/spotifycallback", async (req, res) => {
+  
+  const auth = await database.verifAuthLevel(req, res, "/")
+  if (auth < 0) {
+    res.redirect('/login');
+    return
+  }
+
+  const username = req.session.utilisateur.username
+
+  const code = req.query.code || null;
+  const authOptions = {
+    url: "https://accounts.spotify.com/api/token",
+    form: {
+      code: code,
+      redirect_uri: process.env['SERVER_URL'] + "/spotifycallback",
+      grant_type: "authorization_code"
+    },
+    headers: {
+      "Authorization": "Basic " + (Buffer.from(
+        spotify_client_id + ":" + spotify_client_secret
+      ).toString("base64"))
+    },
+    json: true
+  };
+
+  request.post(authOptions, (error, response, body) => {
+    if (!error && response.statusCode === 200) {
+
+      const tok = {access_token : crypto_manager.encrypt(body.access_token), refresh_token : crypto_manager.encrypt(body.refresh_token)}
+      console.log(tok)
+      database.updateUser(username, {spotify : JSON.stringify(tok)})
+      //crypto.storeToken(id, body.access_token,body.refresh_token,"spotify", name)
+      log(`[spotifycallback]🗂 ${username} s'est connecter avec spotify`)
+
+    } else {
+      log("[spotifycallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
+      res.send('erreur')
+      return
+    }
+  });
+
+  res.send(`
+  <style>
+  @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
+  body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: auto;
+  font-size: 2em;
+  font-family: 'Rubik', sans-serif;
+
+}</style><body><div>Bien connecté à Spotify :)</div></body>`);
+});
+
+
+const deezer_client_id =  process.env['deezer_client_id']
+const deezer_secret_id = process.env['deezer_client_secret']
+app.get("/deezer", (req, res) => {
+
+  
+  const deezerAuthUrl = 'https://connect.deezer.com/oauth/auth.php';
+  const scope = 'basic_access,email,offline_access,manage_library,manage_community,listening_history';
+  const redirectUri = process.env['SERVER_URL'] + '/deezercallback'
+  res.redirect(`${deezerAuthUrl}?app_id=${deezer_client_id}&redirect_uri=${redirectUri}&perms=${scope}`);
+});
+
+app.get("/deezercallback", async (req, res) => {
+  const auth = await database.verifAuthLevel(req, res, "/")
+  if (auth < 0) {
+    res.redirect('/login');
+    return
+  }
+
+  const username = req.session.utilisateur.username
+  
+    request.get({
+      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${deezer_client_id}&secret=${deezer_secret_id}`
+    }, (error, response, body) => {
+      if (!error && response.statusCode === 200) {
+        const access_token = body.slice(13).split('&')[0];
+        // Faites ce que vous devez faire avec access_token ici
+        const tok = {access_token : crypto_manager.encrypt(access_token) }
+        database.updateUser(username, {deezer : JSON.stringify(tok)})
+        
+        log(`[deezercallback]🗂 ${username} s'est connecter avec deezer`)
+  res.send(`
+  <style>
+  @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
+  body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: auto;
+  font-size: 2em;
+  font-family: 'Rubik', sans-serif;
+
+}</style><body><div>Bien connecté à deezer</div></body>`);
+      } else {
+      log("[deezercallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
+        res.send('erreur')
+        return
+        }
+      });
+
+  }
+  
+  );
+
+
+app.get('/connexion-musique', (req, res) => {
+  res.render('connexion-musique', { erreur: null });
+});
+
 
 // Écoutez le port
 app.listen(port, () => {

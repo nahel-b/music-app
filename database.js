@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const uri = process.env['MONGODB_URI']
-console.log(uri)
+
 const client_utilisateur = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
 
@@ -70,6 +70,17 @@ async function getAuthLevelDb(username)
   return 0
 }
 
+async function getUserMusicToken(username)
+{
+  const u = await chercherUtilisateur(username)
+  if(u)
+  {
+    return [u.spotify,u.deezer,u.apple_music]
+  }
+  return -1
+}
+
+
 // Fonction pour chercher un utilisateur dans la base de données
 function chercherUtilisateur(username) {
   return db.collection('utilisateur').findOne({ username });
@@ -100,10 +111,12 @@ async function createUser(username, hash, nom, prenom,authLevel = 0) {
       password: hash,
       nom : nom,
       prenom : prenom,
-      authLevel : authLevel
+      authLevel : authLevel,
+      spotify : -1,
+      deezer : -1,
+      apple_music : -1
     });
    
-    console.log(result)
     if (result.acknowledged) {
       
       return true;
@@ -119,4 +132,4 @@ async function createUser(username, hash, nom, prenom,authLevel = 0) {
 
 
 
-module.exports = {chercherUtilisateur,getAuthLevelDb,verifAuthLevel,updateUser,createUser}
+module.exports = {chercherUtilisateur,getAuthLevelDb,verifAuthLevel,updateUser,createUser,getUserMusicToken}

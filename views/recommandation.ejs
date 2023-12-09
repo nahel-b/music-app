@@ -3,7 +3,7 @@
           <head>
             <meta charset="UTF-8"> 
             <meta http-equiv="X-UA-Compatible" content="IE=edge">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
             <link rel="preconnect" href="https://fonts.googleapis.com"> 
             <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> 
             <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
@@ -29,6 +29,7 @@
                              background: #CCFBFE;
                              overflow: hidden;
                              font-family: sans-serif;
+                             touch-action: manipulation;
                            }
                            .tinder--title {
                             text-align : center;
@@ -82,6 +83,7 @@
                              opacity: 0.7;
                              transform: scale(1);
                            }
+                           
 
                            .tinder--cards {
                              flex-grow: 1;
@@ -167,7 +169,10 @@
                            .fa-heart {
                              color: #FFACE4;
                            }
-
+                          .fa-undo
+                           {
+                             color : #B2E8FD
+                           }
                            .fa-remove {
                              color: #CDD6DD;
                            }
@@ -275,7 +280,9 @@
 
               <div class="tinder--buttons">
                 <button id="nope"><i class="fa fa-remove"></i></button>
+                <button id="undo"><i class="fa fa-undo" aria-hidden="true"></i></button>
                 <button id="love"><i class="fa fa-heart"></i></button>
+                
               </div>
               </div>
             </div>
@@ -283,12 +290,24 @@
 <script>
 
               'use strict';
+
+  var INDEX_CARDS = 0
   
               var tinderContainer = document.querySelector('.tinder');
               var allCards = document.querySelectorAll('.tinder--card');
               var nope = document.getElementById('nope');
               var love = document.getElementById('love');
+  var undo = document.getElementById('undo');
 
+  var newCards = document.querySelectorAll('.tinder--card');
+
+                newCards.forEach(function (card, index) {
+    card.id = 'card-' +  index;
+
+  
+  });
+
+                tinderContainer.classList.add('loaded');
   
  
  
@@ -336,7 +355,7 @@
 
                 hammertime.on('panend', function (event) {
                   el.classList.remove('moving');
-
+                  
                   setTimeout(function() {
                     tinderContainer.classList.remove('tinder_love');
                     tinderContainer.classList.remove('tinder_nope'); 
@@ -345,6 +364,13 @@
 
                   var moveOutWidth = document.body.clientWidth;
                   var keep = Math.abs(event.deltaX) < 80 || Math.abs(event.velocityX) < 0.5;
+
+                  if(!keep)
+                  {
+                    INDEX_CARDS = INDEX_CARDS+1
+                    console.log(event.deltaX > 0 ? 'like' : 'nope')
+                    
+                  }
 
                   var cards = document.querySelectorAll('.tinder--card:not(.removed)');
                   cards[0].classList.toggle('removed', !keep);
@@ -395,13 +421,20 @@
                   event.preventDefault();
                 };
               }
-
+            function undo_funct() {
+              if (INDEX_CARDS<=0){return}
+              INDEX_CARDS = INDEX_CARDS-1
+              document.querySelector("#card-" + INDEX_CARDS).classList.toggle("removed");
+              
+              initCards()
+            }
+  
               var nopeListener = createButtonListener(false);
               var loveListener = createButtonListener(true);
 
               nope.addEventListener('click', nopeListener);
               love.addEventListener('click', loveListener);
-
+              undo.addEventListener('click', undo_funct)
 
 
 
