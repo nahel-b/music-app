@@ -9,7 +9,6 @@ const database = require('./database.js');
 const traitement_image = require('./traitement_image.js');
 const querystring = require("querystring");
 
-console.log(process.env['SERVER_URL'] + "/spotifycallback")
 
 //require('dotenv').config();
 
@@ -69,7 +68,7 @@ app.get('/', async (req, res) => {
 
 //login
 app.get('/login', (req, res) => {
-  res.render('login', { erreur: null });
+  res.render('loginv2', { erreur: null });
 });
 
 //login
@@ -100,13 +99,13 @@ app.post('/login', async (req, res) => {
 
 // Route pour la page d'inscription
 app.get('/signup', (req, res) => {
-  res.render('signupv2', { erreur: null });
+  res.render('signupv3', { erreur: null });
 });
 
 // Route pour gérer l'inscription
 app.post('/signup', limiter, async (req, res) => {
 
-  const { username, password, nom, prenom } = req.body;
+  const { username, password, nom, prenom, email } = req.body;
 
   // Vérifiez si l'utilisateur existe déjà dans la base de données
   const usernameNormalized = username.toLowerCase();
@@ -119,7 +118,7 @@ app.post('/signup', limiter, async (req, res) => {
   const hash = await bcrypt.hash(password, 10);
 
   // Enregistrez les nouvelles informations d'identification dans la base de données
-  const created = await database.createUser(usernameNormalized, hash, nom, prenom, 0 )
+  const created = await database.createUser(usernameNormalized, hash, nom, prenom,email, 0 )
   if (created) {
     log("[Inscription] Nouvel utilisateur: " + usernameNormalized);
     res.redirect('/login');
@@ -194,7 +193,7 @@ for(const song of song_list)
 
 //login
 app.get('/recommandation', (req, res) => {
-  res.render('recommandation', { erreur: null, song_list });
+  res.render('choix-recommandation', { erreur: null, song_list });
 });
 
 const spotify_client_id = process.env['spotify_client_id']
@@ -251,7 +250,6 @@ app.get("/spotifycallback", async (req, res) => {
     if (!error && response.statusCode === 200) {
 
       const tok = {access_token : crypto_manager.encrypt(body.access_token), refresh_token : crypto_manager.encrypt(body.refresh_token)}
-      console.log(tok)
       database.updateUser(username, {spotify : JSON.stringify(tok)})
       //crypto.storeToken(id, body.access_token,body.refresh_token,"spotify", name)
       log(`[spotifycallback]🗂 ${username} s'est connecter avec spotify`)

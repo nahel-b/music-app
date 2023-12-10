@@ -50,14 +50,7 @@ async function verifAuthLevel(req,res,str = "?")
 
   return -1;
   }
-
-
-
-
   return -1;
-
-
-
 }
 
 async function getAuthLevelDb(username)
@@ -91,10 +84,10 @@ async function updateUser(username, updateFields) {
   try {
     const result = await db.collection('utilisateur').updateOne({ username: username.toLowerCase()}, { $set: updateFields });
     if (result.modifiedCount === 1) {
-      log(`Champs mis à jour avec succès pour l'utilisateur.`);
+      
       return true;
     } else {
-      log(`Aucun utilisateur trouvé ou aucune mise à jour effectuée.`);
+      log(`Aucun utilisateur trouvé ou aucune mise à jour effectuée. : ` + username);
       return false;
     }
   } catch (error) {
@@ -103,7 +96,7 @@ async function updateUser(username, updateFields) {
   }
 }
 
-async function createUser(username, hash, nom, prenom,authLevel = 0) {
+async function createUser(username, hash, nom, prenom,email,authLevel = 0) {
   try {
     
     const result = await db.collection('utilisateur').insertOne({
@@ -111,6 +104,7 @@ async function createUser(username, hash, nom, prenom,authLevel = 0) {
       password: hash,
       nom : nom,
       prenom : prenom,
+      email : email,
       authLevel : authLevel,
       spotify : -1,
       deezer : -1,

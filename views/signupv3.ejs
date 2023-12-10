@@ -1,0 +1,163 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inscription</title>
+  <style>@import url(https://fonts.googleapis.com/css?family=Bebas+Neue);
+    *,
+    *:before,
+    *:after {
+      -moz-box-sizing: border-box;
+      -webkit-box-sizing: border-box;
+      box-sizing: border-box;
+    }
+    .inscription
+    {
+      display : block;
+    }
+    html, body {
+      background: #f1f1f1;
+      font-family: 'Bebas Neue', sans-serif;
+      padding: 1em;
+      font-size: 30px;
+    }
+    h1 {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #a8a8a8;
+      justify-content: center;
+    }
+    .emoji {
+      margin-right: 2px;
+      text-align: center;
+      font-size : 30px;
+    }
+    .titre{
+      text-shadow: 3px 3px 0 white;
+      font-size : 50px;
+    }
+    form {
+      max-width: 600px;
+      text-align: center;
+      margin: -30px auto;
+    }
+    form input, form textarea {
+      border: 0;
+      outline: 0;
+      padding: 1em;
+      -moz-border-radius: 8px;
+      -webkit-border-radius: 8px;
+      border-radius: 8px;
+      display: block;
+      width: 100%;
+      margin-top: 1em;
+      font-family: 'Bebas Neue', sans-serif;
+      /*font-size: 10px;*/
+      -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      resize: none;
+      font-size : 15px;
+      height : 40px;
+    }
+    form input:focus, form textarea:focus {
+      -moz-box-shadow: 0 0px 2px #e74c3c !important;
+      -webkit-box-shadow: 0 0px 2px #e74c3c !important;
+      box-shadow: 0 0px 2px #e74c3c !important;
+    }
+    form #input-submit {
+      color: white;
+      background: #e74c3c;
+      cursor: pointer; 
+      font-size : 20px;
+      line-height: 0px;
+      height : 40px;
+      text-align: center;
+      appearance: none;
+    }
+    form #input-submit:hover {
+      -moz-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+      -webkit-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+      box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+    }
+    form textarea {
+      height: 126px;
+    }
+    form .info-texte{
+      font-size : 15px;
+      color: #a8a8a8;
+      text-align : center;
+      margin-top : 10px;
+
+    }
+    .half {
+      float: left;
+      width: 48%;
+      margin-bottom: 1em;
+    }
+    .right {
+      width: 50%;
+    }
+    .left {
+      margin-right: 2%;
+    }
+    /*@media (max-width: 480px) {
+      .half {
+        width: 100%;
+        float: none;
+        margin-bottom: 0;
+      }
+    }*/
+    /* Clearfix */
+    .cf:before,
+    .cf:after {
+      content: " ";
+      /* 1 */
+      display: table;
+      /* 2 */
+    }
+    .cf:after {
+      clear: both;
+    }
+
+
+
+
+    </style>
+</head>
+  <body>
+    <div class= "inscription">
+      <% if (erreur) { %>
+        <p style="color: red;"><%= erreur %></p>
+      <% } %>
+    <h1><span class="emoji">🔐</span><div class="titre">Inscription</div><span class="emoji">🔐</span></h1>
+
+    <form action="/signup" method="post" class="cf">
+
+        <input class="half left" type="text" id="input-name" placeholder="Nom" name="nom" required>
+        <input class= "half right" name="prenom" type="text" id="input-name" placeholder="Prenom" required>
+
+        <input name="email" type="email" id="input-email" placeholder="Adresse mail" required>
+      <input name="username" type="username" id="input-email" placeholder="Username" required>
+        <input type="password" id="password" name ="password" placeholder="Mot de passe" minlength="4" required>
+      <div class="info-texte">
+        Je fais rien de ces infos tqt 🤠
+      </div>
+
+      <!--<div class="half right cf">
+        <textarea name="message" type="text" id="input-message" placeholder="Message"></textarea>
+      </div> -->
+      <input type="submit" value="S'inscrire"  id="input-submit">
+      <br>
+      <div class="info-texte">
+      <p>Déjà inscrit? <a href="/login">Connexion</a></p>
+      </div>
+    </form>
+      
+    </div>
+  </body>
+
