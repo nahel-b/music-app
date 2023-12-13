@@ -1,14 +1,41 @@
 const request = require('request');
 const database = require('./database.js');
 
+async function non_valide_deezer_user_token(token)
+{
+  if(token == null || token == "-1" ||token == "0")
+  {
+    return true;
+  }
+  return new Promise((resolve, reject) => {
+    
+    const reqOpt = {
+      url: 'https://api.deezer.com/user/me/',
+      qs: {
+        'access_token': token
+      }
+    };
+    
+    request(reqOpt, (error, response, body) => {
 
+      if (error) {
+        console.log("errr=" + error);
+        return resolve(true);
+      }
+      return resolve(false);
+    });
+
+  });
+
+  
+}
 //playlistId to tracks id
 async function getDeezerPlaylistTrack(playlist_id) {
   
     url = `https://api.deezer.com/playlist/${playlist_id}/tracks`
     const user_token = await database.getUserMusicToken(username)
-
-    if( non_valide_deezer_user_token(user_token))
+    const nonvalide = await non_valide_deezer_user_token(user_token)
+    if( nonvalide)
     {
       return(-1)
     }
@@ -42,7 +69,8 @@ async function getDeezerPlaylist(playlistId, token) {
 
   const user_token = await database.getUserMusicToken(username)
 
-  if( non_valide_deezer_user_token(user_token))
+  const nonvalide = await non_valide_deezer_user_token(user_token)
+  if( nonvalide)
   {
     return(-1)
   }
@@ -64,17 +92,26 @@ async function getDeezerPlaylist(playlistId, token) {
   });
 }
 
-async function getRecentPlaylistsDeezer(accessToken, offset) {
+async function getRecentDeezerPlaylists(username) {
   //alerte("acc -- " + accessToken)
+
+  let user_token = await database.getUserMusicToken(username)
+  user_token = user_token[1].access_token
+  const nonvalide = await non_valide_deezer_user_token(user_token)
+
+  if( nonvalide)
+  {
+    return(-1)
+  }
+  
   return new Promise((resolve, reject) => {
 
 
     const playlistOptions = {
       url: 'https://api.deezer.com/user/me/playlists',
       qs: {
-        'access_token': accessToken,
-        'limit': nb_prop_playlists,
-        'index': offset
+        'access_token': user_token,
+        'limit' : 50
 
       }
     };
@@ -85,8 +122,11 @@ async function getRecentPlaylistsDeezer(accessToken, offset) {
 
       const playlists = JSON.parse(body).data;
       //alerte("body -- " + body)
+      
       resolve(playlists);
     });
 
   });
 }
+
+module.exports ={getRecentDeezerPlaylists}

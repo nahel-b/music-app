@@ -9,7 +9,7 @@ const database = require('./database.js');
 const traitement_image = require('./traitement_image.js');
 const querystring = require("querystring");
 const apiRoutes = require('./api');
-
+const deezer_client = require('./deezer_client.js');
 
 //require('dotenv').config();
 //const { auth_voir_admin} = require('./config.json');
@@ -59,7 +59,8 @@ app.get('/', async (req, res) => {
       res.redirect("/connexion-musique")
       return
     }
-    res.render('acceuil', { username: req.session.utilisateur.username });
+    res.redirect('/recommandation');
+    //res.render('acceuil', { username: req.session.utilisateur.username });
   } else {
     res.redirect('/login');
   }
@@ -201,7 +202,7 @@ app.get('/recommandation', async (req, res) => {
     return
   }
 
-
+  const usernameNormalized = req.session.utilisateur.username.toLowerCase();
   let token = await database.getUserMusicToken(req.session.utilisateur.username)
   const connecte = (token[0] != 0)
 
@@ -212,13 +213,21 @@ app.get('/recommandation', async (req, res) => {
     {
       
     }
-    else if(token[1] == -1)
+    else if(token[1] != -1)
     {
-      playlist_list =
+      req_pl = await deezer_client.getRecentDeezerPlaylists(usernameNormalized)
+      for(const playlist of req_pl)
+      {
+        const name = playlist.title
+        const pic = [playlist.picture_small, playlist.picture_medium, playlist.picture_big]
+        const id = playlist.id
+        console.log({name,pic,id})
+        playlist_list.push({name,pic,id})
+      }
     }
   }
   
-  res.render('choix-recommandation', { erreur: null, song_list, connecte_musique : connecte });
+  res.render('choix-recommandation', { erreur: null, playlist_list, connecte_musique : connecte });
 });
 
 const spotify_client_id = process.env['spotify_client_id']
@@ -318,15 +327,24 @@ app.get("/deezercallback", async (req, res) => {
     res.redirect('/login');
     return
   }
+  const { code, error_reason } = req.query;
 
+
+  if (error_reason === 'user_denied') {
+    // Handle the case where the user denied the authorization
+    res.send('Authorization denied');
+    return
+  }
+  
+  
   const username = req.session.utilisateur.username
   
     request.get({
-      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${deezer_client_id}&secret=${deezer_secret_id}`
+      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${deezer_client_id}&secret=${deezer_secret_id}&code=${code}`
     }, (error, response, body) => {
       if (!error && response.statusCode === 200) {
         const access_token = body.slice(13).split('&')[0];
-        // Faites ce que vous devez faire avec access_token ici
+
         const tok = {access_token : crypto_manager.encrypt(access_token) }
         database.updateUser(username, {deezer : JSON.stringify(tok)})
         
