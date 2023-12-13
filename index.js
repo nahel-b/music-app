@@ -8,11 +8,10 @@ const crypto_manager = require('./crypto_manager.js');
 const database = require('./database.js');
 const traitement_image = require('./traitement_image.js');
 const querystring = require("querystring");
+const apiRoutes = require('./api');
 
 
 //require('dotenv').config();
-
-
 //const { auth_voir_admin} = require('./config.json');
 
 
@@ -23,12 +22,11 @@ const port = process.env.PORT || 3000;
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(session({ secret: process.env.SESSION_SECRET, resave: true, saveUninitialized: true }));
 app.set('view engine', 'ejs');
+app.use('/api', apiRoutes);
 
 function log(string) {
   console.log("[APP]" + string);
 }
-
-
 
 const rateLimit = require("express-rate-limit");
 
@@ -48,13 +46,14 @@ const limiter = rateLimit({
   }
 });
 
-
 // Route pour la page d'accueil
 app.get('/', async (req, res) => {
 
+  
   const auth = await database.verifAuthLevel(req, res, "/")
   if (auth >= 0) {
-    const music_token = await database.getUserMusicToken(req.session.utilisateur.username)
+    const usernameNormalized = req.session.utilisateur.username.toLowerCase();
+    const music_token = await database.getUserMusicToken(usernameNormalized)
     if( music_token == -1 || (music_token[0] == -1) && (music_token[0] == music_token[1]) && (music_token[1] == music_token[2]) )
     {
       res.redirect("/connexion-musique")
@@ -98,7 +97,9 @@ app.post('/login', async (req, res) => {
 });
 
 // Route pour la page d'inscription
-app.get('/signup', (req, res) => {
+app.get('/signup', async (req, res) => {
+  
+
   res.render('signupv3', { erreur: null });
 });
 
@@ -192,8 +193,32 @@ for(const song of song_list)
 }
 
 //login
-app.get('/recommandation', (req, res) => {
-  res.render('choix-recommandation', { erreur: null, song_list });
+app.get('/recommandation', async (req, res) => {
+
+  const auth = await database.verifAuthLevel(req, res, "/")
+  if (auth < 0) {
+    res.redirect('/login');
+    return
+  }
+
+
+  let token = await database.getUserMusicToken(req.session.utilisateur.username)
+  const connecte = (token[0] != 0)
+
+  let playlist_list = []
+  if(connecte)
+  {
+    if(token[0] != -1)
+    {
+      
+    }
+    else if(token[1] == -1)
+    {
+      playlist_list =
+    }
+  }
+  
+  res.render('choix-recommandation', { erreur: null, song_list, connecte_musique : connecte });
 });
 
 const spotify_client_id = process.env['spotify_client_id']
@@ -276,7 +301,6 @@ app.get("/spotifycallback", async (req, res) => {
 }</style><body><div>Bien connecté à Spotify :)</div></body>`);
 });
 
-
 const deezer_client_id =  process.env['deezer_client_id']
 const deezer_secret_id = process.env['deezer_client_secret']
 app.get("/deezer", (req, res) => {
@@ -327,15 +351,45 @@ app.get("/deezercallback", async (req, res) => {
         }
       });
 
-  }
+  });
+
+app.get('/connexion-musique', async (req, res) => {
+  const auth = await database.verifAuthLevel(req, res, "/connexion-musique")
+  if (auth >= 0) {
+    res.render('connexion-musiquev2', { erreur: null });
+    
+  } else {
   
-  );
-
-
-app.get('/connexion-musique', (req, res) => {
-  res.render('connexion-musique', { erreur: null });
+    res.redirect('/login');
+  }
 });
 
+app.get('/ecoute-seule', async (req, res) => 
+  {
+    const auth = await database.verifAuthLevel(req, res, "/ecoute-seule")
+    if (auth >= 0) {
+
+      const usernameNormalized = req.session.utilisateur.username.toLowerCase();
+
+      const modified = await database.updateUser(usernameNormalized, { spotify: 0,deezer :0 })
+
+      if (modified) {
+        
+        res.redirect('recommandation');
+        return;
+      }
+      else {
+        res.render('connexion-musique', { erreur: 'Une erreur est survenue lors de la connexion. Veuillez réessayer. (20)' });
+        return;
+      }
+
+      
+    } else {
+
+      res.redirect('/login');
+    }
+    
+  });
 
 // Écoutez le port
 app.listen(port, () => {

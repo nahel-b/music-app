@@ -1,8 +1,8 @@
 const fs = require("fs");
 const crypto = require("crypto");
-
+const { Buffer } = require('buffer');
 const algorithm = "aes-256-cbc";
-const key = process.env['clef'];
+const key = Buffer.from(process.env['clef'], "hex");
 const iv = Buffer.from("3d4be42df33cc6a030aa54df2e144920", "hex");
 
 function encrypt(buffer) {
@@ -12,7 +12,8 @@ function encrypt(buffer) {
 
 function decrypt(buffer) {
     const decipher = crypto.createDecipheriv(algorithm, key, iv);
-    return Buffer.concat([decipher.update(buffer), decipher.final()]);
+    const decryptedBuffer = Buffer.concat([decipher.update(buffer), decipher.final()]);
+    return decryptedBuffer.toString('utf-8'); 
 }
 
 // Function to store token in encrypted form

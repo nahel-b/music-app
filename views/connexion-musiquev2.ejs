@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Connexion</title>
+  <head>
+  <style>
+    @import url(https://fonts.googleapis.com/css?family=Bebas+Neue);
+
+    html, body {
+      background: #f1f1f1;
+      font-family: 'Bebas Neue', sans-serif;
+      padding: 1em;
+      font-size: 30px;
+      max-width: 600px;
+      text-align: center;
+      margin: -30px auto;
+    }
+    h1 {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      color: #434343;
+      justify-content: center;
+      font-weight : bold;
+    }
+    .emoji {
+
+      text-align: center;
+      font-size : 30px;
+    }
+    .titre{
+      /*text-shadow: 3px 3px 0 white;*/
+      color: #6D6D6D;
+      font-size : 30px;
+      font-weight : bold;
+    }
+    button{
+      border: 0;
+      outline: 0;
+      padding: 1em;
+      -moz-border-radius: 8px;
+      -webkit-border-radius: 8px;
+      border-radius: 8px;
+      display: block;
+      width: 100%;
+      margin-top: 1em;
+      font-family: 'Bebas Neue', sans-serif;
+      -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+      resize: none;
+    color: white;
+      background: #e74c3c;
+      cursor: pointer; 
+      height : auto;
+      text-align: center;
+      appearance: none;
+        font-size : 22px;
+         line-height: 0px;
+    }
+    button:hover {
+      -moz-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+      -webkit-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+      box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+    }
+
+    .text-btn
+    {
+      font-size : 40px;
+      font-weight : bold;
+    }
+    .info-texte{
+      font-size : 20px;
+      color: #a9a9a9;
+      text-align : center;
+      margin-top : 20px;
+      
+    }
+
+    
+  </style>
+  </head>
+  <body>
+
+    <h1><span class="emoji"></span><div class="titre">Se connecter avec :</div><span class="emoji"></span></h1>
+
+    <button class= "new_playlist_btn" onclick="location.href='/spotify'"><div class="text-btn">Spotify</div></button> 
+    <button class= "new_playlist_btn" onclick="location.href='/deezer'"><div class="text-btn">Deezer</div></button> 
+    <div class="info-texte">
+    <p>Pas de compte?  <a href="/ecoute-seule"> Ecouter seule</a></p>
+    </div>
+  </body>
+  

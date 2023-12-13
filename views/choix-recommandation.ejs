@@ -80,19 +80,16 @@
       text-align: center;
       appearance: none;
     }
-    .choix-1 #button-ecoute
-    {
-        font-size : 25px;
-         line-height: 0px;
-    }
+
     .choix-1 button:hover {
       -moz-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
       -webkit-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
       box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
     }
+
     .choix-1 .new_playlist_input
     {
-      margin-top :11px;
+      margin-top :13.34px;
       float: left;
       width : 78%;
       font-size : 20px;
@@ -109,9 +106,20 @@
       margin-bottom : 20px;
 
     }
+.choix-1 #button-ecoute
+    {
+        font-size : 25px;
+         line-height: 0px;
+        background-color : white;
+        color : #a8a8a8;
+    }
+
+
+
     .choix-1 .text-btn
     {
       font-size : 25px;
+
     }
     .choix-1 .separation-texte{
       font-size : 15px;
@@ -185,21 +193,6 @@
     <h1><span class="emoji">🎺
 </span><div class="titre">Recommandation</div><span class="emoji">🎸
 </span></h1>
-    
-    <button id="button-ecoute"><span class="emojib">🎧</span>Ecoute seule<span class="emojib">🎧</span></button>
-    
-    <div class="separation-texte"> Ou </div>
-    
-    <form>
-      <div class ="title-texte">
-      🪄Nouvelle playlist :
-      </div>
-    <input class="new_playlist_input"  placeholder="Nom..." autofocus required />
-  <button class= "new_playlist_btn" type="submit"><div class="text-btn">Go</div></button> 
-  </form>
-    
-    <div class="separation-texte"> Ou </div>
-    
     <div class ="title-texte">
       ✨Playlists existantes :
       </div>
@@ -221,7 +214,30 @@
       <p>Titre playlist</p>
     </div>
     </div>
+
+
+    <div class="separation-texte"> Ou </div>
+
+    <form>
+      <div class ="title-texte">
+      🪄Nouvelle playlist :
+      </div>
+    <input class="new_playlist_input"  placeholder="Nom..." autofocus required />
+  <button class= "new_playlist_btn" type="submit"><div class="text-btn">Go</div></button> 
+  </form>
+
+    <div class="separation-texte"> Ou </div>
+
+
+
+    <button id="button-ecoute"><span class="emojib">🎧</span>Ecoute seule<span class="emojib">🎧</span></button>
+
   </div>
 </div>
+
+  <script>
+
+    console.log(<%= connecte_musique %>)
+  </script>
 </body>
 </html>

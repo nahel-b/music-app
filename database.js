@@ -1,5 +1,7 @@
 const { MongoClient } = require('mongodb');
 const uri = process.env['MONGODB_URI']
+const crypto_manager = require('./crypto_manager.js');
+const { Buffer } = require('buffer');
 
 const client_utilisateur = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
 
@@ -18,8 +20,7 @@ let db;
   .catch(err => console.error('Erreur de connexion à MongoDB Atlas', err));
 
 
-async function verifAuthLevel(req,res,str = "?")
-{
+async function verifAuthLevel(req,res,str = "?") {
   if (req.session.utilisateur) {
 
     const usernameNormalized = req.session.utilisateur.username.toLowerCase();
@@ -53,8 +54,7 @@ async function verifAuthLevel(req,res,str = "?")
   return -1;
 }
 
-async function getAuthLevelDb(username)
-{
+async function getAuthLevelDb(username) {
   const u = await chercherUtilisateur(username)
   if(u)
   {
@@ -65,12 +65,33 @@ async function getAuthLevelDb(username)
 
 async function getUserMusicToken(username)
 {
+  
+  
   const u = await chercherUtilisateur(username)
-  if(u)
+
+  if(!u){return -1;}
+  
+  res = [-1,-1,-1]
+  if(u.spotify == -1 || u.spotify == 0){ res[0] = u.spotify }
+  else
   {
-    return [u.spotify,u.deezer,u.apple_music]
+    const data = JSON.parse(u.spotify);
+    const bufferData1 = Buffer.from(data.access_token.data);
+    const bufferData2 = Buffer.from(data.refresh_token.data);
+    res[0] = {access_token : crypto_manager.decrypt(bufferData1),refresh_token : crypto_manager.decrypt(bufferData2) }
   }
-  return -1
+
+  if(u.deezer == -1 || u.deezer == 0){ res[0] = u.deezer }
+  else
+  {
+    const data = JSON.parse(u.deezer);
+    const bufferData1 = Buffer.from(data.access_token.data);
+    
+    res[1] = {access_token : crypto_manager.decrypt(bufferData1) }
+  }
+
+  return res
+  
 }
 
 
