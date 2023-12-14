@@ -13,10 +13,10 @@ function log(string ) {
 
 
 //string musique to spotify musiques
-async function envoie_recherche_musique(demande, offset) {
+async function envoie_recherche_musique(demande, offset,limit =3) {
   try {
   let res = []
-  req = await demande_id( demande, offset);
+  req = await demande_id( demande, offset,1,limit);
 
   for (let i = 0; i < req.length; i++) {
     //console.log(req)
@@ -134,10 +134,11 @@ async function refresh_spotify_server_token() {
 
 
 //recherche la query et renvoie les objets spotify
-async function demande_id ( query, offset, essaie_restant = 1) {
+async function demande_id ( query, offset, essaie_restant = 1,limit = 3) {
     let spotify_server_token = await get_spotify_server_token();
     return new Promise((resolve, reject) => {
-        const params = { q: query, type: 'track', market: 'FR', limit: 3, offset };
+      console.log("lie="+limit)
+        const params = { q: query, type: 'track', market: 'FR', limit, offset };
         const headers = {
             Authorization: `Bearer ${spotify_server_token}`,
             'Content-Type': 'application/json',
@@ -155,7 +156,7 @@ async function demande_id ( query, offset, essaie_restant = 1) {
                 if(essaie_restant>0)
                 {
 
-                  let res = await demande_id( query, offset, essaie_restant-1)
+                  let res = await demande_id( query, offset, essaie_restant-1,limit)
                   resolve(res)
 
                 }

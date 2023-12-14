@@ -188,6 +188,10 @@
   </style>
 </head>
 <body>
+  
+
+
+  
 <div class= "recommandation">
   <div class="choix-1">
     <h1><span class="emoji">🎺
@@ -197,25 +201,16 @@
       ✨Playlists existantes :
       </div>
     <div class="playlist-choix">
-    <div class="playlist-elem" id="0" >
-      <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
-      <p>Titre playlist</p>
-    </div>
-      <div class="playlist-elem" id="0" >
-        <img src = "https://i.scdn.co/image/ab67616d0000b273db520bb005a31225511e6ddb" />
-      <p>Titre playlist</p>
-    </div>
-      <div class="playlist-elem" id="0" >
-        <img src = "https://i.scdn.co/image/ab67616d0000b273550b4528f31fd28007a97ab9" />
-      <p>Titre playlist</p>
-    </div>
-      <div class="playlist-elem" id="0" >
-        <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
-      <p>Titre playlist</p>
-    </div>
+      <% for (let playlist of playlist_list) { %>
+        <div class="playlist-elem" id="<%= playlist.id %>" >
+      <img src = "<%= playlist.pic[0]%>" />
+      <p><%= playlist.name %></p>
+        </div>
+        
+      <% } %>
     </div>
 
-
+        
     <div class="separation-texte"> Ou </div>
 
     <form>
@@ -238,9 +233,7 @@
   <script>
 
     console.log(<%= connecte_musique %>)
-      for (const pl in <%=playlist_list%>) {
-        console.log(pl.name)
-      }
+      
       
   </script>
 </body>

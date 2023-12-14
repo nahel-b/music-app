@@ -218,16 +218,17 @@ app.get('/recommandation', async (req, res) => {
       req_pl = await deezer_client.getRecentDeezerPlaylists(usernameNormalized)
       for(const playlist of req_pl)
       {
-        const name = playlist.title
+        const nm = playlist.title.toLowerCase()
+        const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
         const pic = [playlist.picture_small, playlist.picture_medium, playlist.picture_big]
         const id = playlist.id
-        console.log({name,pic,id})
+        
         playlist_list.push({name,pic,id})
       }
     }
   }
-  
-  res.render('choix-recommandation', { erreur: null, playlist_list, connecte_musique : connecte });
+  const SERVER_URL = process.env['SERVER_URL']
+  res.render('choix-recommandationv2', { erreur: null, playlist_list, connecte_musique : connecte,SERVER_URL });
 });
 
 const spotify_client_id = process.env['spotify_client_id']

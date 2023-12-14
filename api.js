@@ -6,13 +6,15 @@ router.get('/recherche', async (req, res) => {
   // Récupérer les paramètres de la requête
   const song_name = req.query.song_name;
   const offset = req.query.offset;
+  const limit = req.query.limit !== undefined ? req.query.limit : 3;
+  console.log("lim="+limit)
 
   if (!song_name || !offset) 
   {
     res.json(-1);
   }
   else {
-    const donnee = await spotify.envoie_recherche_musique(song_name, offset) 
+    const donnee = await spotify.envoie_recherche_musique(song_name, offset,limit) 
     res.json(donnee);
   }
 });

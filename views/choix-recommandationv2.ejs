@@ -1,0 +1,458 @@
+
+        <!DOCTYPE html>
+        <html lang="fr">
+        <head>
+          <meta charset="UTF-8">
+          <meta http-equiv="X-UA-Compatible" content="IE=edge">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>Recommandation</title>
+          <style>
+             @import url(https://fonts.googleapis.com/css?family=Bebas+Neue);
+                *,
+                *:before,
+                *:after {
+                  -moz-box-sizing: border-box;
+                  -webkit-box-sizing: border-box;
+                  box-sizing: border-box;
+                }
+
+                html, body {
+                  background: #f1f1f1;
+                  font-family: 'Bebas Neue', sans-serif;
+                  padding: 1em;
+                  font-size: 30px;
+                  /*display: flex;
+                  align-items: center;
+                  justify-content: center;
+                  height: 80vh; /* Assure que le corps occupe la hauteur complète de la vue (viewport) */
+                  margin: 0;*/
+                }
+                .choix-1, .choix-2,.choix-3 {
+                  max-width: 300px;
+                  text-align: center;
+                  margin: -30px auto;
+
+                  }
+                .choix-2,.choix-3 {
+                  display : none;
+                }
+                .choix-1 h1,.choix-2 h1,.choix-3 h1 {
+                  display: flex;
+                  align-items: center;
+                  text-align: center;
+                  color: #434343;
+                  justify-content: center;
+                }
+                .choix-1 .emoji,.choix-2 .emoji,.choix-3 .emoji {
+                  margin-right: 5px;
+                  text-align: center;
+                  font-size : 30px;
+                }
+                .choix-1 .emojib {
+                  margin: 5px 5px;
+                  text-align: center;
+                  font-size : 20px;
+                }
+                .choix-1 .titre,.choix-2 .titre,.choix-3 .titre{
+                  text-shadow: 3px 3px 0 white;
+                  font-size : 50px;
+                }
+                .choix-1 input,.choix-2 input, .choix-1 button,.choix-2 button,.choix-3 input{
+                  border: 0;
+                  outline: 0;
+                  padding: 1em;
+                  -moz-border-radius: 8px;
+                  -webkit-border-radius: 8px;
+                  border-radius: 8px;
+                  display: block;
+                  width: 100%;
+                  margin-top: 1em;
+                  font-family: 'Bebas Neue', sans-serif;
+                  -moz-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+                  -webkit-box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+                  box-shadow: 0 1px 1px rgba(0, 0, 0, 0.1);
+                  resize: none;
+
+                }
+                .choix-1 button,.choix-2 button {
+                  color: white;
+                  background: #e74c3c;
+                  cursor: pointer; 
+                  height : 40px;
+                  text-align: center;
+                  appearance: none;
+                }
+
+                .choix-1 button:hover,.choix-2 button:hover {
+                  -moz-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+                  -webkit-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+                  box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
+                }
+
+                .choix-1 .new_playlist_input
+                {
+                  margin-top :13.34px;
+                  float: left;
+                  width : 78%;
+                  font-size : 20px;
+                  height : 50px;
+                  appearance: none;
+                  margin-bottom : 20px;
+                }
+            .choix-2 .new_song_input,.choix-3 .new_song_input
+                {
+                  margin-top :20px;
+                  width : 100%;
+                  font-size : 20px;
+                  height : 50px;
+                  appearance: none;
+                  margin-bottom : 20px;
+                }
+
+                .choix-1 .new_playlist_btn
+                {
+                  width : 20%;
+                  float: right;
+                  height : 50px;
+                  background-color : #E6766B;
+                  margin-bottom : 20px;
+
+                }
+            .choix-1 #button-ecoute
+                {
+                    font-size : 25px;
+                     line-height: 0px;
+                    background-color : white;
+                    color : #a8a8a8;
+                }
+            .choix- #button-ecoute
+                {
+                    font-size : 25px;
+                     line-height: 5px;
+                    background-color : white;
+                    color : #a8a8a8;
+                }
+
+                .choix-2 #button-play
+                {
+                    font-size : 25px;
+                    line-height: 5px;
+
+                }
+
+                .choix-1 .text-btn
+                {
+                  font-size : 25px;
+
+                }
+                .choix-1 .separation-texte,.choix-2 .separation-texte{
+                  font-size : 15px;
+                  color: #a8a8a8;
+                  text-align : center;
+                  margin-top : 20px;
+
+                }
+                .choix-1 .title-texte,.choix-2 .title-texte,.choix-3 .title-texte
+                {
+                  font-size : 25px;
+                  color: #6D6D6D;
+                  text-align : left;
+                  margin-top : 15px;
+                  margin-bottom : -10px;
+                }
+                .choix-1 .playlist-choix
+                {
+                  margin-top : 12px;
+                  overflow: auto;
+                  height : 215px;
+                }
+            .choix-2 .playlist-choix,.choix-3 .playlist-choix
+            {
+                  margin-top : 20px;
+                    overflow: auto;
+                  height : 220px;
+                }
+                .choix-1 .playlist-elem
+                {
+                  margin-top : -17px;
+                  background: white;
+                  cursor: pointer; 
+                  height : 50px;
+                  appearance: none;
+                  border-radius: 8px;
+                }
+            .choix-2 .playlist-elem,.choix-3 .playlist-elem
+                {
+                  margin-top : -22px;
+                  background: white;
+                  cursor: pointer; 
+                  height : 50px;
+                  appearance: none;
+                  border-radius: 8px;
+                }
+            .choix-2 .playlist-elem h4 ,.choix-3 .playlist-elem h4 
+            {
+                  font-size : 20px;
+                  color: #a8a8a8;
+                  text-align : left;
+                  line-height : 45px; /* Aligne le contenu verticalement */
+                  margin-left : 50px;
+                  font-weight : bold;
+            }
+                .choix-2 .playlist-elem p,.choix-3 .playlist-elem p
+                {
+                  font-size : 13px;
+                  color: #a8a8a8;
+                  text-align : left;
+                  /*line-height : -20px; /* Aligne le contenu verticalement */
+                  margin-left : 50px;
+                  margin-top : -43px;
+                }
+                .choix-1 .playlist-elem p
+                {
+                  font-size : 20px;
+                  color: #a8a8a8;
+                  text-align : left;
+                  line-height : 50px; /* Aligne le contenu verticalement */
+                  margin-left : 50px;
+
+                }
+                .choix-1 .playlist-elem img,.choix-2 .playlist-elem img,.choix-3 .playlist-elem img 
+                {
+                  margin-top: 5px;
+                  margin-left : 5px;
+                  float : left;
+                  width : 40px;
+                  height : 40px;
+                  border-radius: 8px;
+                }
+
+
+                .cf:before,
+                .cf:after {
+                  content: " ";
+                  /* 1 */
+                  display: table;
+                  /* 2 */
+                }
+                .cf:after {
+                  clear: both;
+                }
+
+
+
+
+          </style>
+        </head>
+        <body> 
+        <div class= "recommandation">
+          <!-- choix-2 : a partir d'un son ou de la playlist -->
+          <% if(connecte_musique) { %>
+          <div class="choix-1">
+            <h1><span class="emoji">🎺
+        </span><div class="titre">Recommandation</div><span class="emoji">🎸
+        </span></h1>
+            <div class ="title-texte">
+              ✨Playlists existantes :
+              </div>
+            <div class="playlist-choix">
+              <% for (let playlist of playlist_list) { %>
+                <div class="playlist-elem" id="<%= playlist.id %>" >
+              <img src = "<%= playlist.pic[0]%>" />
+              <p><%= playlist.name %></p>
+                </div>
+                <% } %>
+                  <!-- -->
+                  
+              </div>
+
+            <div class="separation-texte"> Ou </div>
+            
+    
+            <div>
+              <div class ="title-texte">
+              🪄Nouvelle playlist :
+              </div>
+            <input class="new_playlist_input"  placeholder="Nom..." required />
+          <button class= "new_playlist_btn" type="submit" name="" onclick="choix_2()"><div class="text-btn">Go</div></button> 
+          </div>
+
+            <div class="separation-texte"> Ou </div> 
+
+
+
+            <button id="button-ecoute"><span class="emojib">🎧</span>Ecoute seule<span class="emojib">🎧</span></button>
+
+          </div>
+          <% } %>
+          <div class = "choix-2">
+            <h1><span class="emoji">🎺
+        </span><div class="titre">Recommandation</div><span class="emoji">🎸
+        </span></h1>
+
+             <button id="button-play"><span class="emojib">🎧</span>A partir de la playlist<span class="emojib">🎧</span></button>
+
+
+            <div class="separation-texte"> Ou </div>
+            <div class ="title-texte">
+              🪄A partir de son :
+              </div>
+            <input class="new_song_input"  placeholder="Nom..." required />
+
+
+            <div class ="title-texte">
+
+              </div>
+            <div class="playlist-choix">
+            
+
+
+            </div>
+
+          </div>
+          <div class = "choix-3">
+            <h1><span class="emoji">🎺
+        </span><div class="titre">Recommandation</div><span class="emoji">🎸
+        </span></h1>
+
+
+            <div class ="title-texte">
+              🪄A partir de son :
+              </div>
+            <input class="new_song_input"  placeholder="Nom..." required />
+
+
+            <div class ="title-texte">
+
+              </div>
+            <div class="playlist-choix">
+            <div class="playlist-elem" id="0" >
+              <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
+              <h4>Titre</h4>
+              <p>Artiste</p>
+            </div>
+              <div class="playlist-elem" id="0" >
+                <img src = "https://i.scdn.co/image/ab67616d0000b273db520bb005a31225511e6ddb" />
+              <h4>Titre</h4>
+              <p>Artiste</p>
+            </div>
+              <div class="playlist-elem" id="0" >
+                <img src = "https://i.scdn.co/image/ab67616d0000b273550b4528f31fd28007a97ab9" />
+              <h4>Titre</h4>
+              <p>Artiste</p>
+            </div>
+              <div class="playlist-elem" id="0" >
+                <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
+              <h4>Titre</h4>
+              <p>Artiste</p>
+            </div>
+              <div class="playlist-elem" id="0" >
+                <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
+              <h4>Titre</h4>
+              <p>Artiste</p>
+            </div>
+            </div>
+
+          </div>
+
+
+        </div>
+            <script>
+
+              if(!<%= connecte_musique %>)
+              {
+                document.getElementsByClassName("choix-3")[0].style.display = 'block'
+              }
+
+              function choix_2()
+              {
+                document.getElementsByClassName("choix-1")[0].style.display = 'none'
+                document.getElementsByClassName("choix-2")[0].style.display = 'block'
+                let new_playlist_name = document.querySelector(".choix-1 .new_playlist_input").value
+
+              }
+              let new_song_input_choix_2 = document.querySelector(".choix-2 .new_song_input")
+
+              let timerId;
+
+                new_song_input_choix_2.addEventListener('input', function() {
+                const valeurInput = this.value;
+                // Annuler le timer existant
+                if(valeurInput == "")
+{
+  const divPlaylist = document.querySelector(".choix-2 .new_song_input");
+  divPlaylist.innerHTML = '';
+return;
+
+}
+
+                clearTimeout(timerId);
+
+                timerId = setTimeout(() => { 
+
+
+
+                  fetch(`<%= SERVER_URL %>/api/recherche?song_name=${valeurInput}&offset=0&limit=10`)
+                    .then(response => response.json())
+                    .then(data => {
+                      // Mettre à jour le résultat avec la réponse de l'API
+                      const d = JSON.stringify(data);
+
+
+
+                     
+                    refreshRecherche(".choix-2 .playlist-choix",data)
+ 
+
+                    })
+                    .catch(error => {
+                      console.error('Erreur lors de l\'appel à l\'API:', error);
+                    });
+                }, 250); // Délai de 500 ms (ajustez selon vos besoins)
+              });
+
+
+
+
+              
+              function refreshRecherche(queryselect,listeDictionnaires) {
+                const divPlaylist = document.querySelector(queryselect);
+                divPlaylist.innerHTML = '';
+
+
+                if (divPlaylist) {
+                  listeDictionnaires.forEach((element) => {
+                    const nouvelElem = document.createElement('div');
+                    nouvelElem.classList.add('playlist-elem');
+                    nouvelElem.id = element.id;
+
+                    const imgElem = document.createElement('img');
+                    imgElem.src = element.image_urls[0];
+
+                    const titreElem = document.createElement('h4');
+                    titreElem.textContent = element.titre.length > 28 ? element.titre.substring(0, 28) + '...' : element.titre;
+                      
+
+
+                    const artisteElem = document.createElement('p');
+                    artisteElem.textContent = element.artiste.length > 30 ? element.artiste.substring(0, 30) + '...' : element.artiste;
+                    
+                    nouvelElem.appendChild(imgElem);
+                    nouvelElem.appendChild(titreElem);
+                    nouvelElem.appendChild(artisteElem);
+
+                    divPlaylist.appendChild(nouvelElem);
+                  });
+                } else {
+                  console.error("La div "+ queryselect + " n\'a pas été trouvée.");
+                }
+              }
+
+
+              
+              function updateValue(e) {
+                console.log(e.target.value)
+              }
+            </script>
+        </body>
+        </html>
