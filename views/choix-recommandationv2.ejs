@@ -440,7 +440,7 @@
                           alert("Erreur de connexion à l'API (dis-le à Nahel)");
                           return;
                         }
-                        refreshRecherche(`.${inputElementSelector} .playlist-choix`, data);
+                        refreshRecherche(`.${inputElementSelector} .playlist-choix`, data,this.value);
                       })
                       .catch(error => {
                         console.error('Erreur lors de l\'appel à l\'API:', error);
@@ -452,12 +452,13 @@
               handleInputEvent("choix-2")
               handleInputEvent("choix-3")
               
-              function refreshRecherche(queryselect,listeDictionnaires) {
+              function refreshRecherche(queryselect,listeDictionnaires,current_val_input) {
                 const divPlaylist = document.querySelector(queryselect);
+                const input = document.querySelector(queryselect)
                 divPlaylist.innerHTML = '';
 
 
-                if (divPlaylist) {
+                if (divPlaylist && current_val_input != ""  ) {
                   listeDictionnaires.forEach((element) => {
                     const nouvelElem = document.createElement('div');
                     
