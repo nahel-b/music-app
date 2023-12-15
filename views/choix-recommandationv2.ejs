@@ -256,7 +256,7 @@
               </div>
             <div class="playlist-choix">
               <% for (let playlist of playlist_list) { %>
-                <div class="playlist-elem" id="<%= playlist.id %>" >
+                <div class="playlist-elem" id="<%= playlist.id %>"  onclick='choix_playlist("<%= playlist.id %>","<%= playlist.name %>")' >
               <img src = "<%= playlist.pic[0]%>" />
               <p><%= playlist.name %></p>
                 </div>
@@ -280,7 +280,7 @@
 
 
 
-            <button id="button-ecoute"><span class="emojib">🎧</span>Ecoute seule<span class="emojib">🎧</span></button>
+            <button id="button-ecoute" onclick="choix_3()"><span class="emojib">🎧</span>Ecoute seule<span class="emojib">🎧</span></button>
 
           </div>
           <% } %>
@@ -325,31 +325,7 @@
 
               </div>
             <div class="playlist-choix">
-            <div class="playlist-elem" id="0" >
-              <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
-              <h4>Titre</h4>
-              <p>Artiste</p>
-            </div>
-              <div class="playlist-elem" id="0" >
-                <img src = "https://i.scdn.co/image/ab67616d0000b273db520bb005a31225511e6ddb" />
-              <h4>Titre</h4>
-              <p>Artiste</p>
-            </div>
-              <div class="playlist-elem" id="0" >
-                <img src = "https://i.scdn.co/image/ab67616d0000b273550b4528f31fd28007a97ab9" />
-              <h4>Titre</h4>
-              <p>Artiste</p>
-            </div>
-              <div class="playlist-elem" id="0" >
-                <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
-              <h4>Titre</h4>
-              <p>Artiste</p>
-            </div>
-              <div class="playlist-elem" id="0" >
-                <img src = "https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718" />
-              <h4>Titre</h4>
-              <p>Artiste</p>
-            </div>
+            
             </div>
 
           </div>
@@ -357,59 +333,101 @@
 
         </div>
             <script>
-
+              let playlist_id = ''
               if(!<%= connecte_musique %>)
               {
                 document.getElementsByClassName("choix-3")[0].style.display = 'block'
               }
 
-              function choix_2()
+              function choix_2() //création playlist
               {
+                
+                let new_playlist_name = document.querySelector(".choix-1 .new_playlist_input").value
+                if(new_playlist_name == '')
+                {
+                  alert("Nom de playlist non vide")
+                  return
+                }
+                document.getElementsByClassName("choix-1")[0].style.display = 'none'
+                
+                fetch(`<%= SERVER_URL %>/api/creer_playlist?playlist_name=${new_playlist_name}`)
+                  .then(response => response.json())
+                  .then(data => {
+                    // Mettre à jour le résultat avec la réponse de l'API
+                    if(data == -1 && data == 0)
+                    {
+                      alert("Erreur de connexion a l'API : creation de playlist (dis le a nahel)")
+                      return;
+                    }
+                    playlist_id = data
+                    document.getElementsByClassName("choix-2")[0].style.display = 'block'
+                    document.querySelector(".choix-2 h1 .titre").innerText = `recommandation pour "${new_playlist_name}"`
+                   
+                  })
+                  .catch(error => {
+                    console.error('Erreur lors de l\'appel à l\'API:', error);
+                  });
+              }
+              function choix_3() // ecoute seule
+              {
+
+                
+                document.getElementsByClassName("choix-1")[0].style.display = 'none'
+                document.getElementsByClassName("choix-3")[0].style.display = 'block'
+              }
+              function choix_playlist(id,name) //choix d'une playlist
+              {
+                playlist_id = id
                 document.getElementsByClassName("choix-1")[0].style.display = 'none'
                 document.getElementsByClassName("choix-2")[0].style.display = 'block'
-                let new_playlist_name = document.querySelector(".choix-1 .new_playlist_input").value
-
+                document.querySelector(".choix-2 h1 .titre").innerText = `recommandation pour "${name}"`
+                console.log(playlist_id)
               }
-              let new_song_input_choix_2 = document.querySelector(".choix-2 .new_song_input")
+              
+              
 
               let timerId;
 
-                new_song_input_choix_2.addEventListener('input', function() {
-                const valeurInput = this.value;
+              
+
+              function handleInputEvent(inputElementSelector) {
+
                 
-                  
-                if(valeurInput == "")
-                {
-                  const divPlaylist = document.querySelector(".choix-2 .playlist-choix");
-                  divPlaylist.innerHTML = '';
-                  return;
-                }
+                const inputElement = document.querySelector(`.${inputElementSelector} .new_song_input`);
 
-                clearTimeout(timerId);
-                timerId = setTimeout(() => { 
-                  
-                  fetch(`<%= SERVER_URL %>/api/recherche?song_name=${valeurInput}&offset=0&limit=5`)
-                    .then(response => response.json())
-                    .then(data => {
-                      // Mettre à jour le résultat avec la réponse de l'API
-                      if(data == -1)
-                      {
-                        const divPlaylist = document.querySelector(".choix-2 .new_song_input");
-                        divPlaylist.innerHTML = '';
-                      return;
+                inputElement.addEventListener('input', function () {
+                  const valeurInput = this.value;
 
-                      }
-                      refreshRecherche(".choix-2 .playlist-choix",data)
-                    })
-                    .catch(error => {
-                      console.error('Erreur lors de l\'appel à l\'API:', error);
-                    });
-                }, 500); // Délai de 500 ms (ajustez selon vos besoins)
-              });
+                  if (valeurInput === "") {
+                    const divPlaylist = document.querySelector(`.${inputElementSelector} .playlist-choix`);
+                    divPlaylist.innerHTML = '';
+                    return;
+                  }
 
+                  clearTimeout(timerId);
+                  timerId = setTimeout(() => {
+                    fetch(`<%= SERVER_URL %>/api/recherche?song_name=${valeurInput}&offset=0&limit=5`)
+                      .then(response => response.json())
+                      .then(data => {
+                        if (data == -1) {
+                          const divPlaylist = document.querySelector(`.${inputElementSelector} .new_song_input`);
+                          divPlaylist.innerHTML = '';
+                          return;
+                        } else if (data == 0) {
+                          alert("Erreur de connexion à l'API (dis-le à Nahel)");
+                          return;
+                        }
+                        refreshRecherche(`.${inputElementSelector} .playlist-choix`, data);
+                      })
+                      .catch(error => {
+                        console.error('Erreur lors de l\'appel à l\'API:', error);
+                      });
+                  }, 500);
+                });
+              }
 
-
-
+              handleInputEvent("choix-2")
+              handleInputEvent("choix-3")
               
               function refreshRecherche(queryselect,listeDictionnaires) {
                 const divPlaylist = document.querySelector(queryselect);

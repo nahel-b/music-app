@@ -129,4 +129,32 @@ async function getRecentDeezerPlaylists(username) {
   });
 }
 
-module.exports ={getRecentDeezerPlaylists}
+async function createDeezerPlaylist(nom,access_token,username) {
+  
+  return new Promise(async (resolve, reject) => {
+      const options = {
+        method: "POST",
+        url: "https://api.deezer.com/user/me/playlists",
+        qs: {
+          'access_token': access_token,
+          'title': nom
+        }
+
+      };
+    
+      request(options, async (error, response, body) => {
+        if (error) {
+          console.error("Erreur dans creer playlistDeezer=" + error);
+          resolve(-1)
+        }
+        const p = await JSON.parse(body);
+        
+        const playlistId = p.id;
+        console.log("[APP]✏️ " + username + " à creer une playlist deezer ("+ playlistId +") : " + nom)
+        resolve(playlistId);
+      });
+    
+  })
+}
+
+module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist}
