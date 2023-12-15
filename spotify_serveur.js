@@ -137,7 +137,6 @@ async function refresh_spotify_server_token() {
 async function demande_id ( query, offset, essaie_restant = 1,limit = 3) {
     let spotify_server_token = await get_spotify_server_token();
     return new Promise((resolve, reject) => {
-      console.log("lie="+limit)
         const params = { q: query, type: 'track', market: 'FR', limit, offset };
         const headers = {
             Authorization: `Bearer ${spotify_server_token}`,

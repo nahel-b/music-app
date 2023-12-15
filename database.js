@@ -21,7 +21,7 @@ let db;
 
 
 async function verifAuthLevel(req,res,str = "?") {
-  if (req.session.utilisateur) {
+  if (req.session && req.session.utilisateur) {
 
     const usernameNormalized = req.session.utilisateur.username.toLowerCase();
     const utilisateur = await chercherUtilisateur(usernameNormalized);

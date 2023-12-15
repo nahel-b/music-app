@@ -1,4 +1,3 @@
-
         <!DOCTYPE html>
         <html lang="fr">
         <head>
@@ -40,7 +39,7 @@
                   display: flex;
                   align-items: center;
                   text-align: center;
-                  color: #434343;
+                  color: #a8a8a8;/* #a8a8a8  ;434343*/
                   justify-content: center;
                 }
                 .choix-1 .emoji,.choix-2 .emoji,.choix-3 .emoji {
@@ -54,7 +53,7 @@
                   font-size : 20px;
                 }
                 .choix-1 .titre,.choix-2 .titre,.choix-3 .titre{
-                  text-shadow: 3px 3px 0 white;
+                  text-shadow: 0px 3px 0 #6D6D6D;/*6D6D6D  ;white*/
                   font-size : 50px;
                 }
                 .choix-1 input,.choix-2 input, .choix-1 button,.choix-2 button,.choix-3 input{
@@ -377,38 +376,35 @@
 
                 new_song_input_choix_2.addEventListener('input', function() {
                 const valeurInput = this.value;
-                // Annuler le timer existant
+                
+                  
                 if(valeurInput == "")
-{
-  const divPlaylist = document.querySelector(".choix-2 .new_song_input");
-  divPlaylist.innerHTML = '';
-return;
-
-}
+                {
+                  const divPlaylist = document.querySelector(".choix-2 .playlist-choix");
+                  divPlaylist.innerHTML = '';
+                  return;
+                }
 
                 clearTimeout(timerId);
-
                 timerId = setTimeout(() => { 
-
-
-
-                  fetch(`<%= SERVER_URL %>/api/recherche?song_name=${valeurInput}&offset=0&limit=10`)
+                  
+                  fetch(`<%= SERVER_URL %>/api/recherche?song_name=${valeurInput}&offset=0&limit=5`)
                     .then(response => response.json())
                     .then(data => {
                       // Mettre à jour le résultat avec la réponse de l'API
-                      const d = JSON.stringify(data);
+                      if(data == -1)
+                      {
+                        const divPlaylist = document.querySelector(".choix-2 .new_song_input");
+                        divPlaylist.innerHTML = '';
+                      return;
 
-
-
-                     
-                    refreshRecherche(".choix-2 .playlist-choix",data)
- 
-
+                      }
+                      refreshRecherche(".choix-2 .playlist-choix",data)
                     })
                     .catch(error => {
                       console.error('Erreur lors de l\'appel à l\'API:', error);
                     });
-                }, 250); // Délai de 500 ms (ajustez selon vos besoins)
+                }, 500); // Délai de 500 ms (ajustez selon vos besoins)
               });
 
 

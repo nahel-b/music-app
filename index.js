@@ -46,32 +46,12 @@ const limiter = rateLimit({
   }
 });
 
-// Route pour la page d'accueil
-app.get('/', async (req, res) => {
-
-  
-  const auth = await database.verifAuthLevel(req, res, "/")
-  if (auth >= 0) {
-    const usernameNormalized = req.session.utilisateur.username.toLowerCase();
-    const music_token = await database.getUserMusicToken(usernameNormalized)
-    if( music_token == -1 || (music_token[0] == -1) && (music_token[0] == music_token[1]) && (music_token[1] == music_token[2]) )
-    {
-      res.redirect("/connexion-musique")
-      return
-    }
-    res.redirect('/recommandation');
-    //res.render('acceuil', { username: req.session.utilisateur.username });
-  } else {
-    res.redirect('/login');
-  }
-});
-
-//login
+// connexion
 app.get('/login', (req, res) => {
   res.render('loginv2', { erreur: null });
 });
 
-//login
+// connexion
 app.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -97,14 +77,13 @@ app.post('/login', async (req, res) => {
   }
 });
 
-// Route pour la page d'inscription
+// inscription
 app.get('/signup', async (req, res) => {
-  
 
   res.render('signupv3', { erreur: null });
 });
 
-// Route pour gérer l'inscription
+// inscription
 app.post('/signup', limiter, async (req, res) => {
 
   const { username, password, nom, prenom, email } = req.body;
@@ -130,77 +109,134 @@ app.post('/signup', limiter, async (req, res) => {
 
 });
 
-// Route pour la déconnexion
+// déconnexion
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/');
 });
 
-let song_list=
-  [
-  {
-    image_urls: [
-      'https://i.scdn.co/image/ab67616d0000b273550b4528f31fd28007a97ab9',
-      'https://i.scdn.co/image/ab67616d00001e02550b4528f31fd28007a97ab9',
-      'https://i.scdn.co/image/ab67616d00004851550b4528f31fd28007a97ab9'
-    ],
-    titre: 'KILLCAM',
-    artiste: 'NeS',
-    id: '3MdbKq8mWOW0TB76PbcjnD',
-    preview_url: 'https://p.scdn.co/mp3-preview/2653cc2ff542fb93f7fad2e9bedd283d48af4cb3?cid=0c78a05e835340c6999c6e41421325a9'
-  },
-  {
-    image_urls: [
-      'https://i.scdn.co/image/ab67616d0000b273db520bb005a31225511e6ddb',
-      'https://i.scdn.co/image/ab67616d00001e02db520bb005a31225511e6ddb',
-      'https://i.scdn.co/image/ab67616d00004851db520bb005a31225511e6ddb'
-    ],
-    titre: "LE SOURIRE D'UNE TOMBE",
-    artiste: 'NeS',
-    id: '4yIlzOPjaaEPsF3RyivxQD',
-    preview_url: 'https://p.scdn.co/mp3-preview/fc77b8974fe2d0ddbce8bf99d169bc75ddefc67d?cid=0c78a05e835340c6999c6e41421325a9'
-
-      },
-  {
-    image_urls: [
-      'https://i.scdn.co/image/ab67616d0000b273908eee0051da19ce41cf1fa5',
-      'https://i.scdn.co/image/ab67616d00001e02908eee0051da19ce41cf1fa5',
-      'https://i.scdn.co/image/ab67616d00004851908eee0051da19ce41cf1fa5'
-    ],
-    titre: 'Goal',
-    artiste: 'Josman',
-    id: '3iS6fmjMrZUIqsrLOBkGmv',
-    preview_url: 'https://p.scdn.co/mp3-preview/3b57d0784a775577ecf55e676d9aac7ef09ffa63?cid=0c78a05e835340c6999c6e41421325a9'
-  },
-       {
-    image_urls: [
-      'https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718',
-      'https://i.scdn.co/image/ab67616d00001e025a7c027718559ea175420718',
-      'https://i.scdn.co/image/ab67616d000048515a7c027718559ea175420718'
-    ],
-    titre: 'Ailleurs',
-    artiste: 'Josman',
-    id: '7ujxY1bqVRvMe1sR5iFmxt',
-    preview_url: 'https://p.scdn.co/mp3-preview/8da0908f37f3c7aaf3c5eb794a06f49aca838de3?cid=0c78a05e835340c6999c6e41421325a9'
-  }]
-
-for(const song of song_list)
-{
-  traitement_image.isTextReadable(song.image_urls[0]).then((result) => 
-    {
-      song.text_black= !result;
-      
-  })
-}
-
-//login
-app.get('/recommandation', async (req, res) => {
-
-  const auth = await database.verifAuthLevel(req, res, "/")
+// Vérification auth
+app.use(async (req, res, next) => {
+  const auth = await database.verifAuthLevel(req, res, "middleware");
   if (auth < 0) {
     res.redirect('/login');
-    return
+    return;
   }
+  next();
+});
+
+app.get('/connexion-musique', async (req, res) => {
+    res.render('connexion-musiquev2', { erreur: null });
+});
+app.get('/ecoute-seule', async (req, res) => {
+  const auth = await database.verifAuthLevel(req, res, "/ecoute-seule")
+  if (auth >= 0) {
+
+    const usernameNormalized = req.session.utilisateur.username.toLowerCase();
+
+    const modified = await database.updateUser(usernameNormalized, { spotify: 0,deezer :0 })
+
+    if (modified) {
+
+      res.redirect('recommandation');
+      return;
+    }
+    else {
+      res.render('connexion-musique', { erreur: 'Une erreur est survenue lors de la connexion. Veuillez réessayer. (20)' });
+      return;
+    }
+
+
+  } else {
+
+    res.redirect('/login');
+  }
+
+});
+
+// Vérification connexion-musique
+app.use(async (req, res, next) => {
+  
+    const usernameNormalized = req.session.utilisateur.username.toLowerCase();
+    const music_token = await database.getUserMusicToken(usernameNormalized)
+    if( music_token == -1 || (music_token[0] == -1) && (music_token[0] == music_token[1]) && (music_token[1] == music_token[2]) )
+    {
+      res.redirect("/connexion-musique")
+      return
+    }
+  
+  next();
+});
+
+
+
+
+// Route pour la page d'accueil
+app.get('/', async (req, res) => {
+
+    res.redirect('/recommandation');
+});
+
+
+// let song_list=
+//   [
+//   {
+//     image_urls: [
+//       'https://i.scdn.co/image/ab67616d0000b273550b4528f31fd28007a97ab9',
+//       'https://i.scdn.co/image/ab67616d00001e02550b4528f31fd28007a97ab9',
+//       'https://i.scdn.co/image/ab67616d00004851550b4528f31fd28007a97ab9'
+//     ],
+//     titre: 'KILLCAM',
+//     artiste: 'NeS',
+//     id: '3MdbKq8mWOW0TB76PbcjnD',
+//     preview_url: 'https://p.scdn.co/mp3-preview/2653cc2ff542fb93f7fad2e9bedd283d48af4cb3?cid=0c78a05e835340c6999c6e41421325a9'
+//   },
+//   {
+//     image_urls: [
+//       'https://i.scdn.co/image/ab67616d0000b273db520bb005a31225511e6ddb',
+//       'https://i.scdn.co/image/ab67616d00001e02db520bb005a31225511e6ddb',
+//       'https://i.scdn.co/image/ab67616d00004851db520bb005a31225511e6ddb'
+//     ],
+//     titre: "LE SOURIRE D'UNE TOMBE",
+//     artiste: 'NeS',
+//     id: '4yIlzOPjaaEPsF3RyivxQD',
+//     preview_url: 'https://p.scdn.co/mp3-preview/fc77b8974fe2d0ddbce8bf99d169bc75ddefc67d?cid=0c78a05e835340c6999c6e41421325a9'
+
+//       },
+//   {
+//     image_urls: [
+//       'https://i.scdn.co/image/ab67616d0000b273908eee0051da19ce41cf1fa5',
+//       'https://i.scdn.co/image/ab67616d00001e02908eee0051da19ce41cf1fa5',
+//       'https://i.scdn.co/image/ab67616d00004851908eee0051da19ce41cf1fa5'
+//     ],
+//     titre: 'Goal',
+//     artiste: 'Josman',
+//     id: '3iS6fmjMrZUIqsrLOBkGmv',
+//     preview_url: 'https://p.scdn.co/mp3-preview/3b57d0784a775577ecf55e676d9aac7ef09ffa63?cid=0c78a05e835340c6999c6e41421325a9'
+//   },
+//        {
+//     image_urls: [
+//       'https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718',
+//       'https://i.scdn.co/image/ab67616d00001e025a7c027718559ea175420718',
+//       'https://i.scdn.co/image/ab67616d000048515a7c027718559ea175420718'
+//     ],
+//     titre: 'Ailleurs',
+//     artiste: 'Josman',
+//     id: '7ujxY1bqVRvMe1sR5iFmxt',
+//     preview_url: 'https://p.scdn.co/mp3-preview/8da0908f37f3c7aaf3c5eb794a06f49aca838de3?cid=0c78a05e835340c6999c6e41421325a9'
+//   }]
+
+// for(const song of song_list)
+// {
+//   traitement_image.isTextReadable(song.image_urls[0]).then((result) => 
+//     {
+//       song.text_black= !result;
+      
+//   })
+// }
+
+// //login
+app.get('/recommandation', async (req, res) => {
 
   const usernameNormalized = req.session.utilisateur.username.toLowerCase();
   let token = await database.getUserMusicToken(req.session.utilisateur.username)
@@ -235,15 +271,6 @@ const spotify_client_id = process.env['spotify_client_id']
 const spotify_client_secret = process.env['spotify_client_secret']
 app.get("/spotify",async (req, res) => {
 
-  
-  const auth = await database.verifAuthLevel(req, res, "/")
-  if (auth < 0) {
-    res.redirect('/login');
-    return
-  }
-  
-  //const username = req.session.utilisateur.username
-  //const state = JSON.stringify({username:username});
   const scope = "user-read-private user-library-read playlist-modify-public playlist-modify-private user-library-modify playlist-read-private playlist-read-collaborative";
   res.redirect("https://accounts.spotify.com/authorize?" +
     querystring.stringify({
@@ -257,14 +284,7 @@ app.get("/spotify",async (req, res) => {
 
 app.get("/spotifycallback", async (req, res) => {
   
-  const auth = await database.verifAuthLevel(req, res, "/")
-  if (auth < 0) {
-    res.redirect('/login');
-    return
-  }
-
   const username = req.session.utilisateur.username
-
   const code = req.query.code || null;
   const authOptions = {
     url: "https://accounts.spotify.com/api/token",
@@ -315,7 +335,6 @@ const deezer_client_id =  process.env['deezer_client_id']
 const deezer_secret_id = process.env['deezer_client_secret']
 app.get("/deezer", (req, res) => {
 
-  
   const deezerAuthUrl = 'https://connect.deezer.com/oauth/auth.php';
   const scope = 'basic_access,email,offline_access,manage_library,manage_community,listening_history';
   const redirectUri = process.env['SERVER_URL'] + '/deezercallback'
@@ -323,21 +342,13 @@ app.get("/deezer", (req, res) => {
 });
 
 app.get("/deezercallback", async (req, res) => {
-  const auth = await database.verifAuthLevel(req, res, "/")
-  if (auth < 0) {
-    res.redirect('/login');
-    return
-  }
+
   const { code, error_reason } = req.query;
-
-
   if (error_reason === 'user_denied') {
     // Handle the case where the user denied the authorization
     res.send('Authorization denied');
     return
   }
-  
-  
   const username = req.session.utilisateur.username
   
     request.get({
@@ -372,47 +383,8 @@ app.get("/deezercallback", async (req, res) => {
 
   });
 
-app.get('/connexion-musique', async (req, res) => {
-  const auth = await database.verifAuthLevel(req, res, "/connexion-musique")
-  if (auth >= 0) {
-    res.render('connexion-musiquev2', { erreur: null });
-    
-  } else {
-  
-    res.redirect('/login');
-  }
-});
-
-app.get('/ecoute-seule', async (req, res) => 
-  {
-    const auth = await database.verifAuthLevel(req, res, "/ecoute-seule")
-    if (auth >= 0) {
-
-      const usernameNormalized = req.session.utilisateur.username.toLowerCase();
-
-      const modified = await database.updateUser(usernameNormalized, { spotify: 0,deezer :0 })
-
-      if (modified) {
-        
-        res.redirect('recommandation');
-        return;
-      }
-      else {
-        res.render('connexion-musique', { erreur: 'Une erreur est survenue lors de la connexion. Veuillez réessayer. (20)' });
-        return;
-      }
-
-      
-    } else {
-
-      res.redirect('/login');
-    }
-    
-  });
-
 // Écoutez le port
 app.listen(port, () => {
   console.log(`Serveur en cours d'exécution sur http://localhost:${port}`);
 });
-
 
