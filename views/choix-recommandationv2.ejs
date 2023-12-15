@@ -29,7 +29,7 @@
                 .choix-1, .choix-2,.choix-3 {
                   max-width: 300px;
                   text-align: center;
-                  margin: -30px auto;
+                  margin: -60px auto;
 
                   }
                 .choix-2,.choix-3 {
@@ -56,7 +56,7 @@
                   text-shadow: 0px 3px 0 #6D6D6D;/*6D6D6D  ;white*/
                   font-size : 50px;
                 }
-                .choix-1 input,.choix-2 input, .choix-1 button,.choix-2 button,.choix-3 input{
+                .choix-1 input,.choix-2 input, .choix-1 button,.choix-2 button,.choix-3 input,.choix-3 button{
                   border: 0;
                   outline: 0;
                   padding: 1em;
@@ -73,7 +73,7 @@
                   resize: none;
 
                 }
-                .choix-1 button,.choix-2 button {
+                .choix-1 button,.choix-2 button,.choix-3 button {
                   color: white;
                   background: #e74c3c;
                   cursor: pointer; 
@@ -82,7 +82,7 @@
                   appearance: none;
                 }
 
-                .choix-1 button:hover,.choix-2 button:hover {
+                .choix-1 button:hover,.choix-2 button:hover,.choix-3 button:hover {
                   -moz-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
                   -webkit-box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
                   box-shadow: 0 1px 1px 1px rgba(170, 170, 170, 0.6);
@@ -132,11 +132,10 @@
                     color : #a8a8a8;
                 }
 
-                .choix-2 #button-play
+                .choix-2 #button-play,.choix-3 #button-play
                 {
                     font-size : 25px;
                     line-height: 5px;
-
                 }
 
                 .choix-1 .text-btn
@@ -165,6 +164,17 @@
                   overflow: auto;
                   height : 215px;
                 }
+                .choix-2 .coche,.choix-3 .coche
+                {
+                   background: #ACC582 !important;
+                }
+                .choix-2 .coche p,.choix-2 .coche h4,.choix-3 .coche p,.choix-3 .coche h4
+                {
+
+                  color: white !important;
+
+                }
+            
             .choix-2 .playlist-choix,.choix-3 .playlist-choix
             {
                   margin-top : 20px;
@@ -294,7 +304,7 @@
 
             <div class="separation-texte"> Ou </div>
             <div class ="title-texte">
-              🪄A partir de son :
+              🪄A partir de son : (/)
               </div>
             <input class="new_song_input"  placeholder="Nom..." required />
 
@@ -303,10 +313,9 @@
 
               </div>
             <div class="playlist-choix">
-            
-
-
+          
             </div>
+            <button id="button-play" class="selection-btn"><span class="emojib">🎧</span>Lancer<span class="emojib">🎧</span></button>
 
           </div>
           <div class = "choix-3">
@@ -316,7 +325,7 @@
 
 
             <div class ="title-texte">
-              🪄A partir de son :
+              🪄A partir de son : (/)
               </div>
             <input class="new_song_input"  placeholder="Nom..." required />
 
@@ -325,15 +334,19 @@
 
               </div>
             <div class="playlist-choix">
-            
             </div>
+            <button id="button-play" class="selection-btn"><span class="emojib">🎧</span>Lancer<span class="emojib">🎧</span></button>
 
           </div>
 
 
         </div>
             <script>
+              
               let playlist_id = ''
+              let liste_son_reco = []
+              let max_nb_son = 3
+              
               if(!<%= connecte_musique %>)
               {
                 document.getElementsByClassName("choix-3")[0].style.display = 'block'
@@ -341,8 +354,11 @@
 
               function choix_2() //création playlist
               {
-                
+                const b1 = document.querySelector(".choix-2 .selection-btn")
+                b1.style.backgroundColor = 'white';
+                b1.style.color = '#a8a8a8';
                 let new_playlist_name = document.querySelector(".choix-1 .new_playlist_input").value
+                document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
                 if(new_playlist_name == '')
                 {
                   alert("Nom de playlist non vide")
@@ -370,14 +386,21 @@
               }
               function choix_3() // ecoute seule
               {
-
+                const b2 = document.querySelector(".choix-3 .selection-btn")
+                b2.style.backgroundColor = 'white';
+                b2.style.color = '#a8a8a8';
                 
+                document.querySelector(".choix-3 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
                 document.getElementsByClassName("choix-1")[0].style.display = 'none'
                 document.getElementsByClassName("choix-3")[0].style.display = 'block'
               }
               function choix_playlist(id,name) //choix d'une playlist
               {
+                const b1 = document.querySelector(".choix-2 .selection-btn")
+                b1.style.backgroundColor = 'white';
+                b1.style.color = '#a8a8a8';
                 playlist_id = id
+                document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
                 document.getElementsByClassName("choix-1")[0].style.display = 'none'
                 document.getElementsByClassName("choix-2")[0].style.display = 'block'
                 document.querySelector(".choix-2 h1 .titre").innerText = `recommandation pour "${name}"`
@@ -437,6 +460,41 @@
                 if (divPlaylist) {
                   listeDictionnaires.forEach((element) => {
                     const nouvelElem = document.createElement('div');
+                    
+                    if (liste_son_reco.includes(element.id)) {
+                      nouvelElem.classList.add('coche');    
+                    } 
+                    
+                    nouvelElem.onclick = function() {
+                      
+                        
+                        if (liste_son_reco.includes(element.id)) {
+                            this.classList.toggle('coche');
+                            liste_son_reco = liste_son_reco.filter(item => item !== element.id);
+                        } else if(liste_son_reco.length < max_nb_son) {
+                            this.classList.toggle('coche');
+                            liste_son_reco.push(element.id);
+                        }
+                        document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (${liste_son_reco.length}/${max_nb_son})`
+                        document.querySelector(".choix-3 .title-texte").innerHTML =  `🪄A partir de son : (${liste_son_reco.length}/${max_nb_son})`
+                      const b1 = document.querySelector(".choix-2 .selection-btn")
+                      const b2 = document.querySelector(".choix-3 .selection-btn")
+                      if(liste_son_reco.length > 0)
+                      {
+                        b1.style.backgroundColor = '#e74c3c';
+                        b1.style.color = 'white';
+                        b2.style.backgroundColor = '#e74c3c';
+                        b2.style.color = 'white';
+                      }
+                      else
+                      {
+                        b1.style.backgroundColor = 'white';
+                        b1.style.color = '#a8a8a8';
+                        b2.style.backgroundColor = 'white';
+                        b2.style.color = '#a8a8a8';
+                      }
+                    };
+                    
                     nouvelElem.classList.add('playlist-elem');
                     nouvelElem.id = element.id;
 
