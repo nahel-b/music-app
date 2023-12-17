@@ -24,6 +24,7 @@ app.use(session({ secret: process.env.SESSION_SECRET, resave: true, saveUninitia
 app.set('view engine', 'ejs');
 app.use('/api', apiRoutes);
 
+
 function log(string) {
   console.log("[APP]" + string);
 }
@@ -168,9 +169,6 @@ app.use(async (req, res, next) => {
   next();
 });
 
-
-
-
 // Route pour la page d'accueil
 app.get('/', async (req, res) => {
 
@@ -266,6 +264,17 @@ app.get('/recommandation', async (req, res) => {
   const SERVER_URL = process.env['SERVER_URL']
   res.render('choix-recommandationv2', { erreur: null, playlist_list, connecte_musique : connecte,SERVER_URL });
 });
+
+app.post('/recommandation', async(req,res) => 
+  {
+    const liste_son_seed_reco = JSON.parse(req.body.liste_son_seed_reco)
+    const playlist_id = req.body.playlist_id
+    console.log(playlist_id)
+    console.log(liste_son_seed_reco)
+    const SERVER_URL = process.env['SERVER_URL']
+    res.render('recommandation', { erreur: null, playlist_id, liste_son_seed_reco, SERVER_URL });
+    
+  })
 
 const spotify_client_id = process.env['spotify_client_id']
 const spotify_client_secret = process.env['spotify_client_secret']

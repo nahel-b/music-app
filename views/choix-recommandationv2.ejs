@@ -315,7 +315,7 @@
             <div class="playlist-choix">
           
             </div>
-            <button id="button-play" class="selection-btn"><span class="emojib">🎧</span>Lancer<span class="emojib">🎧</span></button>
+            <button id="button-play" class="selection-btn" ><span class="emojib">🎧</span>Lancer<span class="emojib">🎧</span></button>
 
           </div>
           <div class = "choix-3">
@@ -335,7 +335,7 @@
               </div>
             <div class="playlist-choix">
             </div>
-            <button id="button-play" class="selection-btn"><span class="emojib">🎧</span>Lancer<span class="emojib">🎧</span></button>
+            <button id="button-play" class="selection-btn" ><span class="emojib">🎧</span>Lancer<span class="emojib">🎧</span></button>
 
           </div>
 
@@ -343,8 +343,8 @@
         </div>
             <script>
               
-              let playlist_id = ''
-              let liste_son_reco = []
+              let playlist_id = '-1'
+              let liste_son_seed_reco = []
               let max_nb_son = 3
               
               if(!<%= connecte_musique %>)
@@ -462,25 +462,25 @@
                   listeDictionnaires.forEach((element) => {
                     const nouvelElem = document.createElement('div');
                     
-                    if (liste_son_reco.includes(element.id)) {
+                    if (liste_son_seed_reco.includes(element.id)) {
                       nouvelElem.classList.add('coche');    
                     } 
                     
                     nouvelElem.onclick = function() {
                       
                         
-                        if (liste_son_reco.includes(element.id)) {
+                        if (liste_son_seed_reco.includes(element.id)) {
                             this.classList.toggle('coche');
-                            liste_son_reco = liste_son_reco.filter(item => item !== element.id);
-                        } else if(liste_son_reco.length < max_nb_son) {
+                            liste_son_seed_reco = liste_son_seed_reco.filter(item => item !== element.id);
+                        } else if(liste_son_seed_reco.length < max_nb_son) {
                             this.classList.toggle('coche');
-                            liste_son_reco.push(element.id);
+                            liste_son_seed_reco.push(element.id);
                         }
-                        document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (${liste_son_reco.length}/${max_nb_son})`
-                        document.querySelector(".choix-3 .title-texte").innerHTML =  `🪄A partir de son : (${liste_son_reco.length}/${max_nb_son})`
+                        document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (${liste_son_seed_reco.length}/${max_nb_son})`
+                        document.querySelector(".choix-3 .title-texte").innerHTML =  `🪄A partir de son : (${liste_son_seed_reco.length}/${max_nb_son})`
                       const b1 = document.querySelector(".choix-2 .selection-btn")
                       const b2 = document.querySelector(".choix-3 .selection-btn")
-                      if(liste_son_reco.length > 0)
+                      if(liste_son_seed_reco.length > 0)
                       {
                         b1.style.backgroundColor = '#e74c3c';
                         b1.style.color = 'white';
@@ -522,10 +522,41 @@
               }
 
 
-              
               function updateValue(e) {
                 console.log(e.target.value)
               }
+
+              function startRecommandation() {
+
+                  if(liste_son_seed_reco.length == 0){alert("choisis au moins un son"); return}
+                  // Créer un formulaire dynamique
+                  var form = document.createElement('form');
+                  form.method = 'POST';
+                  form.action = '/recommandation';
+
+                  // Ajouter les champs au formulaire
+                  var input1 = document.createElement('input');
+                  input1.type = 'hidden';
+                  input1.name = 'liste_son_seed_reco';
+                  input1.value = JSON.stringify(liste_son_seed_reco);
+                  form.appendChild(input1);
+
+                  var input2 = document.createElement('input');
+                  input2.type = 'hidden';
+                  input2.name = 'playlist_id';
+                  input2.value = playlist_id;
+                  form.appendChild(input2);
+
+                  // Ajouter le formulaire à la page et le soumettre
+                  document.body.appendChild(form);
+                  form.submit();
+              }
+
+              // Utilisation de la fonction avec des valeurs spécifiques
+
+              document.querySelector(".choix-2 .selection-btn").addEventListener('click',function () {startRecommandation()})
+              document.querySelector(".choix-3 .selection-btn").addEventListener('click', function () {startRecommandation()})
+              
             </script>
         </body>
         </html>

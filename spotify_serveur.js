@@ -39,11 +39,11 @@ async function envoie_recherche_musique(demande, offset,limit =3) {
 }
 
 //id spotify to musique reco
-async function change_tracks(tracks_reco, offset,essaie_restant = 1) {
+async function recommandation(liste_son_seed_reco, offset,limit,essaie_restant = 1) {
 
    let spotify_server_token = await get_spotify_server_token();
   return new Promise((resolve, reject) => {
-    const params = { seed_tracks: tracks_reco.join(','), limit: 20, market: 'FR', offset };
+    const params = { seed_tracks: liste_son_seed_reco.join(','), limit, market: 'FR', offset };
     const headers = {
       Authorization: `Bearer ${spotify_server_token}`,
       'Content-Type': 'application/json'
@@ -52,12 +52,29 @@ async function change_tracks(tracks_reco, offset,essaie_restant = 1) {
     request.get({ url: 'https://api.spotify.com/v1/recommendations', qs: params, headers }, async (error, response, body) => {
       if (response.statusCode === 200) {
         const jsonBody = JSON.parse(body);
-        resolve(jsonBody.tracks);
+        const data = jsonBody.tracks;
+
+        const liste_reco_res = [];
+        
+        for (let i = 0; i < data.length; i++) {
+          //console.log(req)
+          let track = {
+          image_urls : [data[i]['album']['images'][0]['url'],data[i]['album']['images'][1]['url'],data[i]['album']['images'][2]['url']],
+          titre : data[i]['name'],
+          artiste : data[i]['artists'][0]['name'],
+          id : data[i]['id'],
+          preview_url : data[i]['preview_url']
+        }
+          if(data[i]['preview_url'] != null)
+          {
+            liste_reco_res.push(track);
+          }
+        }        
+        resolve(liste_reco_res);
       } else {
         if(essaie_restant>0)
-          {
-
-            let res = await change_tracks(tracks_reco, offset, essaie_restant-1)
+          { 
+            let res = await recommandation(liste_son_seed_reco, offset,limit, essaie_restant-1)
             resolve(res)
           }
         else{
@@ -157,11 +174,11 @@ async function demande_id ( query, offset, essaie_restant = 1,limit = 3) {
 
                   let res = await demande_id( query, offset, essaie_restant-1,limit)
                   resolve(res)
-
+                  return
                 }
               else{
                 resolve(-1);
-
+                return
               }
             }
         });
@@ -299,7 +316,6 @@ async function d_to_s(deezerId,essaie_restant = 1) {
  });
 }
 
-
 async function liste_d_to_s(deezerIds) {
   const promises = deezerIds.map(deezerId => d_to_s(deezerId));
   const spotifyIds = await Promise.all(promises);
@@ -341,4 +357,4 @@ async function addAutoTracks(playlist_id,seed,number,access_token,platform)
 
 
 
-module.exports ={get_spotify_server_token,isTokenValid,demande_id,s_to_d,liste_s_to_d,d_to_s,liste_d_to_s,envoie_recherche_musique,change_tracks}
+module.exports ={get_spotify_server_token,isTokenValid,demande_id,s_to_d,liste_s_to_d,d_to_s,liste_d_to_s,envoie_recherche_musique,recommandation}

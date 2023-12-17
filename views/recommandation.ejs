@@ -226,112 +226,134 @@
               <div class="tinder--cards">
 
 
-                 <% for (const song of song_list) { %>
-
-                <div class="tinder--card">
-                  <img src="<%= song.image_urls[1] %>">
-                  <div class="card-text">
-          <h3 class="<%= song.text_black ? 'black-text' : '' %>"><%= song.titre %></h3>
-          <h4 class="<%= song.text_black ? 'black-text' : '' %>"><%= song.artiste %></h4>
-        </div>
-                  </div>
-
-
-                <%}%>
+                 
                   
-                <div class="tinder--card">
-                  <img src="https://i.scdn.co/image/ab67616d0000b2734c614878cb234061701cac6c">
-                  <div class="card-text">
-          <h3>Title</h3>
-          <h4>Subtitle</h4> 
-        </div>
-                  </div>
-                <div class="tinder--card">
-                  <img src="https://i.scdn.co/image/ab67616d0000b2734c614878cb234061701cac6c">
-                  <div class="card-text">
-          <h3>Title</h3>
-          <h4>Subtitle</h4>
-        </div>
-                  </div>
-                <div class="tinder--card">
-                  <img src="https://i.scdn.co/image/ab67616d0000b2734c614878cb234061701cac6c">
-                  <div class="card-text">
-          <h3>Title</h3>
-          <h4>Subtitle</h4> 
-        </div>
-                  </div>
-                <div class="tinder--card">
-                  <img src="https://i.scdn.co/image/ab67616d0000b2734c614878cb234061701cac6c">
-                  <div class="card-text">
-          <h3>Title</h3>
-          <h4>Subtitle</h4>
-        </div>
-                  </div>
-                <div class="tinder--card">
-                  <img src="https://i.scdn.co/image/ab67616d0000b2734c614878cb234061701cac6c">
-                  <div class="card-text">
-          <h3>Title</h3>
-          <h4>Subtitle</h4> 
-        </div>
-                  </div>
-
-
-
+               
 
               <div class="tinder--buttons">
                 <button id="nope"><i class="fa fa-remove"></i></button>
                 <button id="undo"><i class="fa fa-undo" aria-hidden="true"></i></button>
                 <button id="love"><i class="fa fa-heart"></i></button>
-                
               </div>
+                 </div>
+              
               </div>
-            </div>
+            
 
 <script>
 
               'use strict';
-
-  var INDEX_CARDS = 0
+              var liste_son_seed_reco = "<%= liste_son_seed_reco %>"
+              var playlist_id = "<%= playlist_id %>"
+              var INDEX_CARDS = 0 // carte affichée à l'écran
+              var offset_cards = 0 // de ou on par pour les requete 
+              var liste_son_reco = [] // son de musique reco
+              var chargement_liste_son_reco = false
+              var nb_ajout_son = 20
   
               var tinderContainer = document.querySelector('.tinder');
               var allCards = document.querySelectorAll('.tinder--card');
               var nope = document.getElementById('nope');
               var love = document.getElementById('love');
-  var undo = document.getElementById('undo');
+              var undo = document.getElementById('undo');
+              var newCards = document.querySelectorAll('.tinder--card');
 
-  var newCards = document.querySelectorAll('.tinder--card');
+              
 
-                newCards.forEach(function (card, index) {
-    card.id = 'card-' +  index;
+              async function refresh() 
+              {
+                if( INDEX_CARDS > liste_son_reco.length - nb_ajout_son/2 && !chargement_liste_son_reco)
+                {
+                  console.log("chargement nouveaux sons...")
+                  chargement_liste_son_reco = true
+                  fetch(`<%= SERVER_URL %>/api/recommandation?liste_son_seed_reco=${liste_son_seed_reco}&offset=${offset_cards}&limit=${nb_ajout_son}`)
+                  .then(response => response.json())
+                  .then(data => {
+                    
+                    
+                    if (data == 0 || data == -1) {
+                      alert("Erreur de connexion à l'API (dis-le à Nahel)");
+                      return;
+                    }
+                    var offset_a_ajouter = liste_son_reco.length 
+                    liste_son_reco.push(...data)
+                    chargement_liste_son_reco = false
+                    ajouterCarte(offset_a_ajouter)
+                  })
+                  .catch(error => {
+                    console.error('Erreur lors de l\'appel à l\'API:', error);
+                  })
 
-  
-  });
 
-                tinderContainer.classList.add('loaded');
-  
- 
- 
 
-              function initCards(card, index) {
-                var newCards = document.querySelectorAll('.tinder--card:not(.removed)');
-
-                newCards.forEach(function (card, index) {
-    card.style.zIndex = allCards.length - index;
-
-    if (index === 0) {
-      card.style.transform = 'translateY(0px) scale(1)';
-    } else {
-      card.style.transform = 'scale(' + (20 - index) / 20 + ') translateY(-30px)';
-      //card.style.opacity = (10 - index) / 10;
-    }
-  });
-
-                tinderContainer.classList.add('loaded');
+                  
+                }
+                
+              }
+              function ajouterCarte(offset_depart) {
+                // Sélectionner la div avec la classe "tinder--cards"
+                var divTinderCards = document.querySelector('.tinder--cards');
+            
+                for (let index = offset_depart; index < liste_son_reco.length; index++) 
+                {
+                  
+                    var nouvelleCarte = document.createElement('div');
+                    nouvelleCarte.classList.add('tinder--card');
+                    nouvelleCarte.style.display = 'none'
+                    nouvelleCarte.id = 'card-' +  index;
+                    var song = liste_son_reco[index]
+                    nouvelleCarte.innerHTML = `
+                      <img src="${song.image_urls[1]}">
+                      <div class="card-text">
+                        <h3 class="${song.text_black ? 'black-text' : ''}">${song.titre}</h3>
+                        <h4 class="${song.text_black ? 'black-text' : ''}">${song.artiste}</h4>
+                      </div>
+                    `;
+                
+                    // Ajouter la nouvelle carte à la div "tinder--cards"
+                    divTinderCards.appendChild(nouvelleCarte);
+                    
+                  }
+                initCards()
+                addGlissement()
               }
 
-              initCards();
+  
+              refresh()
+  
 
-              allCards.forEach(function (el) {
+              tinderContainer.classList.add('loaded');
+  
+              function initCards(card, index) {
+                  allCards = document.querySelectorAll('.tinder--card');
+                  var newCards = document.querySelectorAll('.tinder--card:not(.removed)');
+  
+                  newCards.forEach(function (card, index) {
+      card.style.zIndex = allCards.length - index;
+                  
+                  if (index === 0) {
+                    
+                    card.style.transform = 'translateY(0px) scale(1)';
+                    card.style.display = 'block'
+                  } else 
+                  {
+                    
+                    card.style.transform = 'scale(' + (20 - index) / 20 + ') translateY(-30px)';
+                    if(index<5){card.style.display = 'block'}
+                    //card.style.opacity = (10 - index) / 10;
+                  }
+                  
+    });
+  
+                  tinderContainer.classList.add('loaded');
+              }
+
+              //initCards();
+
+              function  addGlissement(){
+              var notInitCards = document.querySelectorAll('.tinder--card:not(.init)');
+                notInitCards.forEach(function (el) {
+                el.classList.add('init');
                 var hammertime = new Hammer(el);
 
                 hammertime.on('pan', function (event) {
@@ -369,7 +391,7 @@
                   {
                     INDEX_CARDS = INDEX_CARDS+1
                     console.log(event.deltaX > 0 ? 'like' : 'nope')
-                    
+                    refresh()
                   }
 
                   var cards = document.querySelectorAll('.tinder--card:not(.removed)');
@@ -398,9 +420,10 @@
                   }
                 });
               });
-
+  }
               function createButtonListener(love) {
                 return function (event) {
+                  INDEX_CARDS = INDEX_CARDS + 1
                   var cards = document.querySelectorAll('.tinder--card:not(.removed)');
                   var moveOutWidth = document.body.clientWidth * 1.5;
 
@@ -421,7 +444,7 @@
                   event.preventDefault();
                 };
               }
-            function undo_funct() {
+              function undo_funct() {
               if (INDEX_CARDS<=0){return}
               INDEX_CARDS = INDEX_CARDS-1
               document.querySelector("#card-" + INDEX_CARDS).classList.toggle("removed");
@@ -436,8 +459,8 @@
               love.addEventListener('click', loveListener);
               undo.addEventListener('click', undo_funct)
 
-
-
+              nope.addEventListener('click', refresh)
+              love.addEventListener('click', refresh)
 </script>
           </body>
 

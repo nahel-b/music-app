@@ -3,7 +3,7 @@ const router = express.Router();
 const spotify = require('./spotify_serveur.js');
 const database = require('./database.js');
 const deezer_client = require('./deezer_client.js');
-
+const traitement_image = require('./traitement_image.js');
 
 router.use(async (req, res, next) => {
   const auth = await database.verifAuthLevel(req, res, "middlewareAPI");
@@ -82,15 +82,18 @@ router.get('/creer_playlist', async (req, res) => {
 
 router.get('/recommandation', async (req, res) => {
   // Récupérer les paramètres de la requête
-  const song_name = req.query.song_name;
+  const liste_son_seed_reco = req.query.liste_son_seed_reco.split(',');
   const offset = req.query.offset;
-
-  if (!song_name || !offset) 
+  const limit = req.query.limit !== undefined ? req.query.limit : 50;
+  
+  if (!liste_son_seed_reco || !offset) 
   {
     res.json(-1);
   }
   else {
-    const donnee = await spotify.envoie_recherche_musique(song_name, offset) 
+    
+    const donnee = await spotify.recommandation(liste_son_seed_reco, offset,limit)
+    
     res.json(donnee);
   }
 });
