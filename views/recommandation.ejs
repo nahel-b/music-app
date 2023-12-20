@@ -343,7 +343,7 @@
                 <button id="undo"><i class="fa fa-undo" aria-hidden="true"></i></button>
                 <button id="love"><i class="fa fa-heart"></i></button>
                 <div class="audio-player">
-                    <audio id="myAudio" src=""></audio>
+                    <audio loop id="myAudio" src=""></audio>
                     <button id="playPauseBtn" onclick="togglePlayPause()">
                         <i class="fa fa-play"></i>
                     </button>
@@ -395,7 +395,7 @@
                     
                     
                     if (data == 0 || data == -1) {
-                      alert("Erreur de connexion à l'API (dis-le à Nahel)");
+                      alert("Erreur de connexion à l'API (dis-le à Nahel) et relance la page");
                       chargement_liste_son_reco = false
                       return;
                     }

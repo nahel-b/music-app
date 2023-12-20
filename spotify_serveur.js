@@ -78,7 +78,7 @@ async function recommandation(liste_son_seed_reco, offset,limit,essaie_restant =
             resolve(res)
           }
         else{
-          log("[ERR] erreur dans change tracks")
+          log("[ERR] erreur dans change tracks : " + error)
           resolve(-1);
         }
       }
@@ -232,7 +232,6 @@ async function liste_s_to_d(spotifyIds) {
   const promises = spotifyIds.map(spotifyId => s_to_d(spotifyId));
   const deezerIds = await Promise.all(promises);
 
-
   return deezerIds;
 }
 
@@ -273,7 +272,7 @@ async function d_to_s(deezerId,essaie_restant = 1) {
               catch(err)
               {
                 {
-                  console.log(searchData.tracks)
+                  
               //console.log("pastrouverrrrequete = " + query +  "\n\n" + "reponse = ")
                   if(essaie_restant>0)
                   {
@@ -317,6 +316,7 @@ async function d_to_s(deezerId,essaie_restant = 1) {
 }
 
 async function liste_d_to_s(deezerIds) {
+
   const promises = deezerIds.map(deezerId => d_to_s(deezerId));
   const spotifyIds = await Promise.all(promises);
   return spotifyIds;

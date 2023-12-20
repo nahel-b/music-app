@@ -385,8 +385,6 @@ app.post('/recommandation', async(req,res) =>
   {
     const liste_son_seed_reco = JSON.parse(req.body.liste_son_seed_reco)
     const playlist_id = req.body.playlist_id
-    console.log(playlist_id)
-    console.log(liste_son_seed_reco)
     const SERVER_URL = process.env['SERVER_URL']
     res.render('recommandation', { erreur: null, playlist_id, liste_son_seed_reco, SERVER_URL });
     

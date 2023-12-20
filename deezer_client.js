@@ -30,44 +30,40 @@ async function non_valide_deezer_user_token(token)
   
 }
 //playlistId to tracks id
-async function getDeezerPlaylistTrack(playlist_id) {
-  
-    url = `https://api.deezer.com/playlist/${playlist_id}/tracks`
-    const user_token = await database.getUserMusicToken(username)
-    const nonvalide = await non_valide_deezer_user_token(user_token)
-    if( nonvalide)
-    {
-      return(-1)
-    }
-    
-    const playlistOptions = {
-        url: `https://api.deezer.com/playlist/${playlist_id}`,
-        qs: {
-          'access_token': user_token
-        }
-      };
-      request(playlistOptions, (error, response, body) => {
-        if (error) {
+async function getDeezerPlaylistTracksId(playlist_id, user_token) {
+    return new Promise( async (resolve, reject) => {
+        const nonvalide = await non_valide_deezer_user_token(user_token);
 
-          console.log("erreur ds getdeezerplaylisttrack :" + error);
-          return reject(-1);
+        if (nonvalide) {
+            reject(-1);
         }
 
-        res = []
-        const nb = JSON.parse(body).tracks.data;
-        nb.forEach(async track => {
-          res.push(track.id)
+        const playlistOptions = {
+            url: `https://api.deezer.com/playlist/${playlist_id}`,
+            qs: {
+                'access_token': user_token,
+            },
+        };
+
+        request(playlistOptions, (error, response, body) => {
+            if (error) {
+                console.log("erreur ds getdeezerplaylisttrack :" + error);
+                reject(-1);
+            }
+
+            const tracks = JSON.parse(body).tracks.data;
+            const trackIds = tracks.map(track => track.id) ? tracks.map(track => track.id) : [];
+            
+            
+            resolve(trackIds);
         });
-
-        resolve(res)
-        return
-      })
+    });
 }
 
 //playlistId to info playlist
-async function getDeezerPlaylist(playlistId, token) {
+async function getDeezerPlaylist(playlistId,user_token) {
 
-  const user_token = await database.getUserMusicToken(username)
+  
 
   const nonvalide = await non_valide_deezer_user_token(user_token)
   if( nonvalide)
@@ -77,7 +73,7 @@ async function getDeezerPlaylist(playlistId, token) {
   
   return new Promise((resolve, reject) => {
     const options = {
-      uri: `https://api.deezer.com/playlist/${playlistId}?access_token=${token}`,
+      uri: `https://api.deezer.com/playlist/${playlistId}?access_token=${user_token}`,
       json: true
     };
     request(options, (error, response, body) => {
@@ -130,6 +126,14 @@ async function getRecentDeezerPlaylists(username) {
 }
 
 async function createDeezerPlaylist(nom,access_token,username) {
+
+  
+  const nonvalide = await non_valide_deezer_user_token(access_token)
+
+  if( nonvalide)
+  {
+    return(-1)
+  }
   
   return new Promise(async (resolve, reject) => {
       const options = {
@@ -157,4 +161,4 @@ async function createDeezerPlaylist(nom,access_token,username) {
   })
 }
 
-module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist}
+module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId}

@@ -344,8 +344,10 @@
             <script>
               
               let playlist_id = '-1'
-              let liste_son_seed_reco = []
+              let liste_son_seed_reco = [] //choix de la recherche
+              let liste_son_seed_reco_playlist = [] // seed de la playlist
               let max_nb_son = 3
+              
               
               if(!<%= connecte_musique %>)
               {
@@ -396,17 +398,29 @@
               }
               function choix_playlist(id,name) //choix d'une playlist
               {
+
+                document.getElementsByClassName("choix-1")[0].style.display = 'none'
+                fetch(`<%= SERVER_URL %>/api/get_playlist_tracks_id?playlist_id=${id}`)
+                .then(response =>{return response.json()})
+                .then(data => {
+                  
+                  if (data.length<1) {
+                    playlist_id = id
+                    choix_3()
+                    return;
+                  } else  {
+                    liste_son_seed_reco_playlist = data
                 const b1 = document.querySelector(".choix-2 .selection-btn")
                 b1.style.backgroundColor = 'white';
                 b1.style.color = '#a8a8a8';
                 playlist_id = id
                 document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
-                document.getElementsByClassName("choix-1")[0].style.display = 'none'
+                
                 document.getElementsByClassName("choix-2")[0].style.display = 'block'
                 document.querySelector(".choix-2 h1 .titre").innerText = `recommandation pour "${name}"`
                 console.log(playlist_id)
-              }
-              
+                  }})
+                }
               
 
               let timerId;
@@ -526,9 +540,9 @@
                 console.log(e.target.value)
               }
 
-              function startRecommandation() {
+              function startRecommandation(liste) {
 
-                  if(liste_son_seed_reco.length == 0){alert("choisis au moins un son"); return}
+                  if(liste.length == 0){alert("choisis au moins un son"); return}
                   // Créer un formulaire dynamique
                   var form = document.createElement('form');
                   form.method = 'POST';
@@ -538,7 +552,7 @@
                   var input1 = document.createElement('input');
                   input1.type = 'hidden';
                   input1.name = 'liste_son_seed_reco';
-                  input1.value = JSON.stringify(liste_son_seed_reco);
+                  input1.value = JSON.stringify(liste);
                   form.appendChild(input1);
 
                   var input2 = document.createElement('input');
@@ -554,8 +568,10 @@
 
               // Utilisation de la fonction avec des valeurs spécifiques
 
-              document.querySelector(".choix-2 .selection-btn").addEventListener('click',function () {startRecommandation()})
-              document.querySelector(".choix-3 .selection-btn").addEventListener('click', function () {startRecommandation()})
+              document.querySelector(".choix-2 .selection-btn").addEventListener('click',function () {startRecommandation(liste_son_seed_reco)})
+              document.querySelector(".choix-3 .selection-btn").addEventListener('click', function () {startRecommandation(liste_son_seed_reco)})
+              document.querySelector(".choix-2 #button-play").addEventListener('click',function () {startRecommandation(liste_son_seed_reco_playlist)})
+              
               
             </script>
         </body>
