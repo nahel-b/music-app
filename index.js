@@ -155,6 +155,122 @@ app.get('/ecoute-seule', async (req, res) => {
 
 });
 
+const spotify_client_id = process.env['spotify_client_id']
+const spotify_client_secret = process.env['spotify_client_secret']
+app.get("/spotify",async (req, res) => {
+
+  const scope = "user-read-private user-library-read playlist-modify-public playlist-modify-private user-library-modify playlist-read-private playlist-read-collaborative";
+  res.redirect("https://accounts.spotify.com/authorize?" +
+    querystring.stringify({
+      response_type: "code",
+      client_id: spotify_client_id,
+      scope: scope,
+      //state: state,
+      redirect_uri: process.env['SERVER_URL'] + "/spotifycallback"
+    }));
+});
+
+app.get("/spotifycallback", async (req, res) => {
+
+  const username = req.session.utilisateur.username
+  const code = req.query.code || null;
+  const authOptions = {
+    url: "https://accounts.spotify.com/api/token",
+    form: {
+      code: code,
+      redirect_uri: process.env['SERVER_URL'] + "/spotifycallback",
+      grant_type: "authorization_code"
+    },
+    headers: {
+      "Authorization": "Basic " + (Buffer.from(
+        spotify_client_id + ":" + spotify_client_secret
+      ).toString("base64"))
+    },
+    json: true
+  };
+
+  request.post(authOptions, (error, response, body) => {
+    if (!error && response.statusCode === 200) {
+
+      const tok = {access_token : crypto_manager.encrypt(body.access_token), refresh_token : crypto_manager.encrypt(body.refresh_token)}
+      database.updateUser(username, {spotify : JSON.stringify(tok)})
+      //crypto.storeToken(id, body.access_token,body.refresh_token,"spotify", name)
+      log(`[spotifycallback]🗂 ${username} s'est connecter avec spotify`)
+
+    } else {
+      log("[spotifycallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
+      res.send('erreur')
+      return
+    }
+  });
+
+  res.send(`
+  <style>
+  @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
+  body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: auto;
+  font-size: 2em;
+  font-family: 'Rubik', sans-serif;
+
+}</style><body><div>Bien connecté à Spotify :)</div></body>`);
+});
+
+const deezer_client_id =  process.env['deezer_client_id']
+const deezer_secret_id = process.env['deezer_client_secret']
+app.get("/deezer", (req, res) => {
+
+  const deezerAuthUrl = 'https://connect.deezer.com/oauth/auth.php';
+  const scope = 'basic_access,email,offline_access,manage_library,manage_community,listening_history';
+  const redirectUri = process.env['SERVER_URL'] + '/deezercallback'
+  res.redirect(`${deezerAuthUrl}?app_id=${deezer_client_id}&redirect_uri=${redirectUri}&perms=${scope}`);
+});
+
+app.get("/deezercallback", async (req, res) => {
+
+  const { code, error_reason } = req.query;
+  if (error_reason === 'user_denied') {
+    // Handle the case where the user denied the authorization
+    res.send('Authorization denied');
+    return
+  }
+  const username = req.session.utilisateur.username
+
+    request.get({
+      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${deezer_client_id}&secret=${deezer_secret_id}&code=${code}`
+    }, (error, response, body) => {
+      if (!error && response.statusCode === 200) {
+        const access_token = body.slice(13).split('&')[0];
+
+        const tok = {access_token : crypto_manager.encrypt(access_token) }
+        database.updateUser(username, {deezer : JSON.stringify(tok)})
+
+        log(`[deezercallback]🗂 ${username} s'est connecter avec deezer`)
+  res.send(`
+  <style>
+  @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
+  body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin: auto;
+  font-size: 2em;
+  font-family: 'Rubik', sans-serif;
+
+}</style><body><div>Bien connecté à deezer</div></body>`);
+      } else {
+      log("[deezercallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
+        res.send('erreur')
+        return
+        }
+      });
+
+  });
+
 // Vérification connexion-musique
 app.use(async (req, res, next) => {
   
@@ -276,121 +392,6 @@ app.post('/recommandation', async(req,res) =>
     
   })
 
-const spotify_client_id = process.env['spotify_client_id']
-const spotify_client_secret = process.env['spotify_client_secret']
-app.get("/spotify",async (req, res) => {
-
-  const scope = "user-read-private user-library-read playlist-modify-public playlist-modify-private user-library-modify playlist-read-private playlist-read-collaborative";
-  res.redirect("https://accounts.spotify.com/authorize?" +
-    querystring.stringify({
-      response_type: "code",
-      client_id: spotify_client_id,
-      scope: scope,
-      //state: state,
-      redirect_uri: process.env['SERVER_URL'] + "/spotifycallback"
-    }));
-});
-
-app.get("/spotifycallback", async (req, res) => {
-  
-  const username = req.session.utilisateur.username
-  const code = req.query.code || null;
-  const authOptions = {
-    url: "https://accounts.spotify.com/api/token",
-    form: {
-      code: code,
-      redirect_uri: process.env['SERVER_URL'] + "/spotifycallback",
-      grant_type: "authorization_code"
-    },
-    headers: {
-      "Authorization": "Basic " + (Buffer.from(
-        spotify_client_id + ":" + spotify_client_secret
-      ).toString("base64"))
-    },
-    json: true
-  };
-
-  request.post(authOptions, (error, response, body) => {
-    if (!error && response.statusCode === 200) {
-
-      const tok = {access_token : crypto_manager.encrypt(body.access_token), refresh_token : crypto_manager.encrypt(body.refresh_token)}
-      database.updateUser(username, {spotify : JSON.stringify(tok)})
-      //crypto.storeToken(id, body.access_token,body.refresh_token,"spotify", name)
-      log(`[spotifycallback]🗂 ${username} s'est connecter avec spotify`)
-
-    } else {
-      log("[spotifycallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
-      res.send('erreur')
-      return
-    }
-  });
-
-  res.send(`
-  <style>
-  @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
-  body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  margin: auto;
-  font-size: 2em;
-  font-family: 'Rubik', sans-serif;
-
-}</style><body><div>Bien connecté à Spotify :)</div></body>`);
-});
-
-const deezer_client_id =  process.env['deezer_client_id']
-const deezer_secret_id = process.env['deezer_client_secret']
-app.get("/deezer", (req, res) => {
-
-  const deezerAuthUrl = 'https://connect.deezer.com/oauth/auth.php';
-  const scope = 'basic_access,email,offline_access,manage_library,manage_community,listening_history';
-  const redirectUri = process.env['SERVER_URL'] + '/deezercallback'
-  res.redirect(`${deezerAuthUrl}?app_id=${deezer_client_id}&redirect_uri=${redirectUri}&perms=${scope}`);
-});
-
-app.get("/deezercallback", async (req, res) => {
-
-  const { code, error_reason } = req.query;
-  if (error_reason === 'user_denied') {
-    // Handle the case where the user denied the authorization
-    res.send('Authorization denied');
-    return
-  }
-  const username = req.session.utilisateur.username
-  
-    request.get({
-      url: `https://connect.deezer.com/oauth/access_token.php?app_id=${deezer_client_id}&secret=${deezer_secret_id}&code=${code}`
-    }, (error, response, body) => {
-      if (!error && response.statusCode === 200) {
-        const access_token = body.slice(13).split('&')[0];
-
-        const tok = {access_token : crypto_manager.encrypt(access_token) }
-        database.updateUser(username, {deezer : JSON.stringify(tok)})
-        
-        log(`[deezercallback]🗂 ${username} s'est connecter avec deezer`)
-  res.send(`
-  <style>
-  @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
-  body {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  margin: auto;
-  font-size: 2em;
-  font-family: 'Rubik', sans-serif;
-
-}</style><body><div>Bien connecté à deezer</div></body>`);
-      } else {
-      log("[deezercallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
-        res.send('erreur')
-        return
-        }
-      });
-
-  });
 
 // Écoutez le port
 app.listen(port, () => {
