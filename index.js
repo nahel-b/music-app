@@ -71,10 +71,11 @@ app.post('/login', async (req, res) => {
       return
     }
     else {
-      res.render('login', { erreur: 'Une erreur est survenue lors de la connexion. Veuillez réessayer.' });
+      res.render('loginv2', { erreur: 'Une erreur est survenue lors de la connexion. Veuillez réessayer.' });
     }
   } else {
-    res.render('login', { erreur: 'Nom d\'utilisateur ou mot de passe incorrect' });
+
+    res.render('loginv2', { erreur: "Nom d'utilisateur ou mot de passe incorrect (j'ai réinitialisé tous les comptes, faut en créer un nouveau)" });
   }
 });
 
@@ -93,7 +94,7 @@ app.post('/signup', limiter, async (req, res) => {
   const usernameNormalized = username.toLowerCase();
   const utilisateur = await database.chercherUtilisateur(usernameNormalized);
   if (utilisateur) {
-    return res.render('signup', { erreur: 'Nom d\'utilisateur déjà utilisé' });
+    return res.render('signupv3', { erreur: 'Nom d\'utilisateur déjà utilisé' });
   }
 
   // Hachez le mot de passe avant de le stocker dans la base de données
@@ -291,65 +292,6 @@ app.get('/', async (req, res) => {
     res.redirect('/recommandation');
 });
 
-
-// let song_list=
-//   [
-//   {
-//     image_urls: [
-//       'https://i.scdn.co/image/ab67616d0000b273550b4528f31fd28007a97ab9',
-//       'https://i.scdn.co/image/ab67616d00001e02550b4528f31fd28007a97ab9',
-//       'https://i.scdn.co/image/ab67616d00004851550b4528f31fd28007a97ab9'
-//     ],
-//     titre: 'KILLCAM',
-//     artiste: 'NeS',
-//     id: '3MdbKq8mWOW0TB76PbcjnD',
-//     preview_url: 'https://p.scdn.co/mp3-preview/2653cc2ff542fb93f7fad2e9bedd283d48af4cb3?cid=0c78a05e835340c6999c6e41421325a9'
-//   },
-//   {
-//     image_urls: [
-//       'https://i.scdn.co/image/ab67616d0000b273db520bb005a31225511e6ddb',
-//       'https://i.scdn.co/image/ab67616d00001e02db520bb005a31225511e6ddb',
-//       'https://i.scdn.co/image/ab67616d00004851db520bb005a31225511e6ddb'
-//     ],
-//     titre: "LE SOURIRE D'UNE TOMBE",
-//     artiste: 'NeS',
-//     id: '4yIlzOPjaaEPsF3RyivxQD',
-//     preview_url: 'https://p.scdn.co/mp3-preview/fc77b8974fe2d0ddbce8bf99d169bc75ddefc67d?cid=0c78a05e835340c6999c6e41421325a9'
-
-//       },
-//   {
-//     image_urls: [
-//       'https://i.scdn.co/image/ab67616d0000b273908eee0051da19ce41cf1fa5',
-//       'https://i.scdn.co/image/ab67616d00001e02908eee0051da19ce41cf1fa5',
-//       'https://i.scdn.co/image/ab67616d00004851908eee0051da19ce41cf1fa5'
-//     ],
-//     titre: 'Goal',
-//     artiste: 'Josman',
-//     id: '3iS6fmjMrZUIqsrLOBkGmv',
-//     preview_url: 'https://p.scdn.co/mp3-preview/3b57d0784a775577ecf55e676d9aac7ef09ffa63?cid=0c78a05e835340c6999c6e41421325a9'
-//   },
-//        {
-//     image_urls: [
-//       'https://i.scdn.co/image/ab67616d0000b2735a7c027718559ea175420718',
-//       'https://i.scdn.co/image/ab67616d00001e025a7c027718559ea175420718',
-//       'https://i.scdn.co/image/ab67616d000048515a7c027718559ea175420718'
-//     ],
-//     titre: 'Ailleurs',
-//     artiste: 'Josman',
-//     id: '7ujxY1bqVRvMe1sR5iFmxt',
-//     preview_url: 'https://p.scdn.co/mp3-preview/8da0908f37f3c7aaf3c5eb794a06f49aca838de3?cid=0c78a05e835340c6999c6e41421325a9'
-//   }]
-
-// for(const song of song_list)
-// {
-//   traitement_image.isTextReadable(song.image_urls[0]).then((result) => 
-//     {
-//       song.text_black= !result;
-      
-//   })
-// }
-
-// //login
 app.get('/recommandation', async (req, res) => {
 
   const usernameNormalized = req.session.utilisateur.username.toLowerCase();
@@ -365,6 +307,14 @@ app.get('/recommandation', async (req, res) => {
     }
     else if(token[1] != -1)
     {
+      const historique_pl = await database.recupererIdPlaylistHistorique(usernameNormalized)
+      for(const id_pl of historique_pl) 
+      {
+        const info_pl = await deezer_client.getDeezerPlaylist(id_pl,token[1].access_token)
+        playlist_list.push(info_pl)
+      }
+      
+      
       req_pl = await deezer_client.getRecentDeezerPlaylists(usernameNormalized)
       for(const playlist of req_pl)
       {
@@ -372,8 +322,11 @@ app.get('/recommandation', async (req, res) => {
         const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
         const pic = [playlist.picture_small, playlist.picture_medium, playlist.picture_big]
         const id = playlist.id
+        if(playlist_list.find(pl => pl.id == id) == undefined)
+        {
+          playlist_list.push({name,pic,id})
+        }
         
-        playlist_list.push({name,pic,id})
       }
     }
   }

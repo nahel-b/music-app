@@ -1,8 +1,7 @@
 const request = require('request');
 const database = require('./database.js');
 
-async function non_valide_deezer_user_token(token)
-{
+async function non_valide_deezer_user_token(token){
   if(token == null || token == "-1" ||token == "0")
   {
     return true;
@@ -62,9 +61,7 @@ async function getDeezerPlaylistTracksId(playlist_id, user_token) {
 
 //playlistId to info playlist
 async function getDeezerPlaylist(playlistId,user_token) {
-
   
-
   const nonvalide = await non_valide_deezer_user_token(user_token)
   if( nonvalide)
   {
@@ -73,16 +70,21 @@ async function getDeezerPlaylist(playlistId,user_token) {
   
   return new Promise((resolve, reject) => {
     const options = {
-      uri: `https://api.deezer.com/playlist/${playlistId}?access_token=${user_token}`,
-      json: true
+      uri: `https://api.deezer.com/playlist/${playlistId}?access_token=${user_token}`
     };
     request(options, (error, response, body) => {
-      if (error) {
-        reject(error);
-      } else if (response.statusCode !== 200) {
-        reject(new Error(`La récupération de la playlist a échoué avec le code d'erreur ${response.statusCode}`));
+      if (error || response.statusCode !== 200) {
+        console.log("erreur ds getdeezerplaylist :" + error);
+        return resolve(-1);
       } else {
-        resolve(body);
+        const playlist = JSON.parse(body)
+
+        const nm = playlist.title.toLowerCase()
+        const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
+        const pic = [playlist.picture_small, playlist.picture_medium, playlist.picture_big]
+        const id = playlist.id
+        
+        resolve({name,pic,id});
       }
     });
   });
@@ -161,4 +163,38 @@ async function createDeezerPlaylist(nom,access_token,username) {
   })
 }
 
-module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId}
+//add track to playlist
+async function addTracksToDeezerPlaylist(playlistId,tracksId,access_token) 
+{
+  
+  const nonvalide = await non_valide_deezer_user_token(access_token)
+  if( nonvalide)
+  {
+    return(-1)
+  }
+  const options = {
+    method: "POST",
+    url: `https://api.deezer.com/playlist/${playlistId}/tracks`,
+    qs: {
+      'access_token': access_token,
+      'songs': tracksId.join(',')
+    }
+  };
+
+
+  return new Promise( async (resolve, reject) => {
+  request(options, async (error, response, body) => {
+    console.log(body)
+    if (error) {
+      console.error("[ERR] dans ajout des sons" +  tracksId.join(',')  + " dans la playlist " + playlistId + error);
+      resolve(-1)
+      return
+    }
+    resolve(true)
+    return
+  });
+
+  })
+}
+
+module.exports ={getRecentDeezerPlaylists,createDeezerPlaylist,getDeezerPlaylistTracksId,addTracksToDeezerPlaylist,getDeezerPlaylist}

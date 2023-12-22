@@ -141,12 +141,14 @@
 </head>
   <body>
     <div class= "inscription">
-      <% if (erreur) { %>
-        <p style="color: red;"><%= erreur %></p>
-      <% } %>
+      
     <h1><span class="emoji">🔐</span><div class="titre">Inscription</div><span class="emoji">🔐</span></h1>
 
     <form action="/signup" method="post" class="cf">
+
+      <% if (erreur) { %>
+        <p style="color: red;font-size: 15px;margin-bottom:20px;"><%= erreur %></p>
+      <% } %>
 
         <input class="half left" type="text" id="input-name" placeholder="Nom" name="nom" required>
         <input class= "half right" name="prenom" type="text" id="input-name" placeholder="Prenom" required>

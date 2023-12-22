@@ -129,7 +129,9 @@ async function createUser(username, hash, nom, prenom,email,authLevel = 0) {
       authLevel : authLevel,
       spotify : -1,
       deezer : -1,
-      apple_music : -1
+      apple_music : -1,
+        tracks_refuse: [],
+      playlist_historique: []
     });
    
     if (result.acknowledged) {
@@ -145,6 +147,110 @@ async function createUser(username, hash, nom, prenom,email,authLevel = 0) {
   }
 }
 
+async function ajouterTrackPlaylistDB(username, playlistId, trackId) {
+  try {
+    const utilisateur = await chercherUtilisateur(username);
+    if (!utilisateur) {
+      log(`Utilisateur non trouvé : ${username} (ajouterSonPlaylistDB)`);
+      return false;
+    }
+
+    // Vérifier si la playlist existe déjà
+    const playlistIndex = utilisateur.tracks_refuse.findIndex(playlist => playlist.id === playlistId);
+    if (playlistIndex === -1) {
+      // La playlist n'existe pas, la créer
+      const nouvellePlaylist = {
+        id: playlistId,
+        songs: [trackId]
+      };
+
+      utilisateur.tracks_refuse.push(nouvellePlaylist);
+    } else {
+      utilisateur.tracks_refuse[playlistIndex].songs.push(trackId);
+    }
+
+    const updateResult = await updateUser(username, { tracks_refuse: utilisateur.tracks_refuse });
+
+    return updateResult ? true : -1;
+  } catch (error) {
+    log(`Erreur lors de l'ajout du son à la playlist : ${error} (ajouterSonPlaylistDB)`);
+    return -1;
+  }
+}
+
+async function getListeSonPlaylistDB(username, playlistId) {
+  try {
+    const utilisateur = await chercherUtilisateur(username);
+    if (!utilisateur) {
+      log(`Utilisateur non trouvé : ${username}`);
+      return [];
+    }
+
+    // Rechercher la playlist par son ID
+    const playlist = utilisateur.tracks_refuse.find(playlist => playlist.id === playlistId);
+    if (!playlist) {
+      log(`Playlist non trouvée : ${playlistId}`);
+      return [];
+    }
+
+    // Retourner la liste des ID de son de la playlist
+    return playlist.songs;
+  } catch (error) {
+    log(`Erreur lors de la récupération de la liste des ID de son de la playlist : ${error}`);
+    return [];
+  }
+}
+
+async function ajouterIdPlaylistHistorique(username, playlistId, nbMaxHistorique = 3) {
+  try {
+    const utilisateur = await chercherUtilisateur(username);
+    if (!utilisateur) {
+      log(`Utilisateur non trouvé : ${username} (ajouterIdPlaylistHistorique)`);
+      return false;
+    }
+
+    const playlist_historique = utilisateur.playlist_historique || [];
+
+    const indexDansHistorique = playlist_historique.indexOf(playlistId);
+
+    if (indexDansHistorique ==0){return true;}
+    
+    if (indexDansHistorique !== -1) {
+        playlist_historique.splice(indexDansHistorique, 1);
+    }
+
+      playlist_historique.unshift(playlistId);
+
+    if (playlist_historique.length > nbMaxHistorique) {
+        playlist_historique.pop(); 
+    }
+
+    const updateResult = await updateUser(username, { playlist_historique });
+
+    return updateResult ? true : -1;
+  } catch (error) {
+    log(`Erreur lors de l'ajout de l'ID de playlist à l'historique : ${error} (ajouterIdPlaylistHistorique)`);
+    return -1;
+  }
+}
+
+async function recupererIdPlaylistHistorique(username) {
+  try {
+    const utilisateur = await chercherUtilisateur(username);
+    if (!utilisateur) {
+      log(`Utilisateur non trouvé : ${username} (recupererHistorique)`);
+      return [];
+    }
+
+    // Récupérer l'historique
+    const historique = utilisateur.playlist_historique || [];
+
+    return historique;
+  } catch (error) {
+    log(`Erreur lors de la récupération de l'historique : ${error} (recupererHistorique)`);
+    return [];
+  }
+}
 
 
-module.exports = {chercherUtilisateur,getAuthLevelDb,verifAuthLevel,updateUser,createUser,getUserMusicToken}
+module.exports = {chercherUtilisateur,getAuthLevelDb,verifAuthLevel,updateUser,createUser,getUserMusicToken,ajouterTrackPlaylistDB,getListeSonPlaylistDB,ajouterIdPlaylistHistorique,recupererIdPlaylistHistorique}

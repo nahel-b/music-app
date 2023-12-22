@@ -321,7 +321,7 @@
                 <i class="fa fa-remove"></i>
                 <i class="fa fa-heart"></i>
               </div>
-              <h1 class="tinder--title">🎧À l'écoute :🎧</h1>
+              <!--<h1 class="tinder--title">🎧À l'écoute :🎧</h1>-->
 
 
               <div class="tinder--cards">
@@ -367,11 +367,13 @@
               'use strict';
               var liste_son_seed_reco = "<%= liste_son_seed_reco %>"
               var playlist_id = "<%= playlist_id %>"
+              var SERVER_URL = "<%= SERVER_URL %>"
               var INDEX_CARDS = 0 // carte affichée à l'écran
               var offset_cards = 0 // de ou on par pour les requete 
               var liste_son_reco = [] // son de musique reco
               var chargement_liste_son_reco = false
-              var nb_ajout_son = 20
+              var nb_ajout_son = 40
+            
   
               var tinderContainer = document.querySelector('.tinder');
               var allCards = document.querySelectorAll('.tinder--card');
@@ -389,7 +391,7 @@
                 {
                   console.log("chargement nouveaux sons...")
                   chargement_liste_son_reco = true
-                  fetch(`<%= SERVER_URL %>/api/recommandation?liste_son_seed_reco=${liste_son_seed_reco}&offset=${offset_cards}&limit=${nb_ajout_son}`)
+                  fetch(`${SERVER_URL}/api/recommandation?liste_son_seed_reco=${liste_son_seed_reco}&offset=${offset_cards}&limit=${nb_ajout_son}&playlist_id=${playlist_id}`)
                   .then(response => response.json())
                   .then(data => {
                     
@@ -523,12 +525,7 @@
                   var moveOutWidth = document.body.clientWidth;
                   var keep = Math.abs(event.deltaX) < 80 || Math.abs(event.velocityX) < 0.5;
 
-                  if(!keep)
-                  {
-                    INDEX_CARDS = INDEX_CARDS+1
-                    console.log(event.deltaX > 0 ? 'like' : 'nope')
-                    refresh()
-                  }
+                
 
                   var cards = document.querySelectorAll('.tinder--card:not(.removed)');
                   cards[0].classList.toggle('removed', !keep);
@@ -536,6 +533,21 @@
                   if (keep) {
                     cards[0].style.transform = '';
                   } else {
+
+                    
+                    if (event.deltaX > 0)
+                    {
+                      action_like()
+                    }
+                    else
+                    {
+                      action_nope()
+                    }
+                    
+
+
+
+                    
                     var endX = Math.max(Math.abs(event.velocityX) * moveOutWidth, moveOutWidth);
                     var toX = event.deltaX > 0 ? endX : -endX;
                     var endY = Math.abs(event.velocityY) * moveOutWidth;
@@ -557,9 +569,26 @@
                 });
               });
   }
+
+  function action_like() 
+  {
+      add_tracks_to_playlist([liste_son_reco[INDEX_CARDS].id],playlist_id)
+      ajouter_track_playlist_DB(liste_son_reco[INDEX_CARDS].id,playlist_id)
+      INDEX_CARDS = INDEX_CARDS + 1
+      refresh()
+  }
+  function action_nope() 
+  {
+    add_tracks_to_playlist([liste_son_reco[INDEX_CARDS].id],playlist_id)
+    ajouter_track_playlist_DB(liste_son_reco[INDEX_CARDS].id,playlist_id)
+    INDEX_CARDS = INDEX_CARDS + 1
+    refresh()
+  }
+  
               function createButtonListener(love) {
                 return function (event) {
-                  INDEX_CARDS = INDEX_CARDS + 1
+
+                  action_like()
                   var cards = document.querySelectorAll('.tinder--card:not(.removed)');
                   var moveOutWidth = document.body.clientWidth * 1.5;
 
@@ -598,7 +627,36 @@
               nope.addEventListener('click', refresh)
               love.addEventListener('click', refresh)
 
+              function ajouter_track_playlist_DB(track_id,playlist_id) 
+              {
+                
+                fetch(`${SERVER_URL}/api/ajouter_track_playlist_DB?playlist_id=${playlist_id}&track_id=${track_id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                      if(data == -1 && data == 0)
+                      {
+                        console.log("Sons pas ajouté à la playlist DB")
+                        return;
+                      }
 
+                })
+              }
+              function add_tracks_to_playlist(tracks_id,playlist_id) 
+              {
+                const tracks_id_str = tracks_id.join(',');
+                fetch(`${SERVER_URL}/api/add_tracks_playlist?playlist_id=${playlist_id}&tracks_id=${tracks_id_str}`)
+                  .then(response => response.json())
+                  .then(data => {
+                    // Mettre à jour le résultat avec la réponse de l'API
+                    if(data == -1 && data == 0)
+                    {
+                      console.log("Sons pas ajouté à ta playlist")
+                      return;
+                    }
+                
+              })
+
+                        }
 //------AUDIO------//
 
 

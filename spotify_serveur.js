@@ -59,7 +59,10 @@ async function recommandation(liste_son_seed_reco, offset,limit,essaie_restant =
         for (let i = 0; i < data.length; i++) {
           //console.log(req)
           let track = {
-          image_urls : [data[i]['album']['images'][0]['url'],data[i]['album']['images'][1]['url'],data[i]['album']['images'][2]['url']],
+            
+          image_urls : [data[i]['album']['images'][0]['url'],data[i]['album']['images'][1]['url'],data[i]['album']['images'][2]['url']]
+            
+            ,
           titre : data[i]['name'],
           artiste : data[i]['artists'][0]['name'],
           id : data[i]['id'],

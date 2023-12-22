@@ -145,14 +145,14 @@
     <div class= "inscription">
     <h1><span class="emoji">🔐</span><div class="titre">Connexion</div><span class="emoji">🔐</span></h1>
 
-      <% if (erreur) { %>
-        <p style="color: red;"><%= erreur %></p>
-      <% } %>
+      
         
     <form action="/login" method="post" class="cf">
 
 
-
+      <% if (erreur) { %>
+        <p style="color: red;font-size: 15px;margin-bottom:20px;"><%= erreur %></p>
+      <% } %>
 
         <input type="text" id="input-email" name="username" placeholder="Username" required>
 

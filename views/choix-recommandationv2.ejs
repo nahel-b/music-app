@@ -32,7 +32,7 @@
                   margin: -60px auto;
 
                   }
-                .choix-2,.choix-3 {
+                .choix-2,.choix-3, .chargement {
                   display : none;
                 }
                 .choix-1 h1,.choix-2 h1,.choix-3 h1 {
@@ -54,7 +54,7 @@
                 }
                 .choix-1 .titre,.choix-2 .titre,.choix-3 .titre{
                   text-shadow: 0px 3px 0 #6D6D6D;/*6D6D6D  ;white*/
-                  font-size : 50px;
+                  font-size : 40px;
                 }
                 .choix-1 input,.choix-2 input, .choix-1 button,.choix-2 button,.choix-3 input,.choix-3 button{
                   border: 0;
@@ -114,7 +114,7 @@
                   float: right;
                   height : 50px;
                   background-color : #E6766B;
-                  margin-bottom : 20px;
+                  margin-bottom : 22px;
 
                 }
             .choix-1 #button-ecoute
@@ -236,6 +236,22 @@
                   border-radius: 8px;
                 }
 
+            
+            .chargement{
+                
+                /*display: flex;*/
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                height: 100vh;
+                margin: 0;
+
+                text-align: center;
+                font-size: 24px;
+                margin-bottom: 0px;
+                color: #6D6D6D;
+            }
+
 
                 .cf:before,
                 .cf:after {
@@ -255,6 +271,35 @@
         </head>
         <body> 
         <div class= "recommandation">
+
+          <div class="chargement">
+            <div class="texte">---</div>
+
+
+            <div class="loader loader--style1" title="0">
+          <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+           width="40px" height="40px" viewBox="0 0 40 40" enable-background="new 0 0 40 40" xml:space="preserve">
+          <path opacity="0.2" fill="#000" d="M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946
+            s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634
+            c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z"/>
+          <path fill="#000" d="M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0
+            C22.32,8.481,24.301,9.057,26.013,10.047z">
+            <animateTransform attributeType="xml"
+              attributeName="transform"
+              type="rotate"
+              from="0 20 20"
+              to="360 20 20"
+              dur="0.5s"
+              repeatCount="indefinite"/>
+            </path>
+          </svg>
+          </div>
+            <!--<img id="image" src="https://mikael.neocities.org/collections/disc-gifs/cd_011.gif" alt="Image tournante">-->
+
+          </div>
+
+
+          
           <!-- choix-2 : a partir d'un son ou de la playlist -->
           <% if(connecte_musique) { %>
           <div class="choix-1">
@@ -356,17 +401,19 @@
 
               function choix_2() //création playlist
               {
-                const b1 = document.querySelector(".choix-2 .selection-btn")
+                const b1 = document.querySelector(".choix-3 .selection-btn")
                 b1.style.backgroundColor = 'white';
                 b1.style.color = '#a8a8a8';
                 let new_playlist_name = document.querySelector(".choix-1 .new_playlist_input").value
-                document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
+                document.querySelector(".choix-3 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
                 if(new_playlist_name == '')
                 {
                   alert("Nom de playlist non vide")
                   return
                 }
                 document.getElementsByClassName("choix-1")[0].style.display = 'none'
+                document.querySelector(".chargement .texte").innerHTML = 'Création de ta jolie playlist'
+                document.getElementsByClassName("chargement")[0].style.display = 'flex'
                 
                 fetch(`<%= SERVER_URL %>/api/creer_playlist?playlist_name=${new_playlist_name}`)
                   .then(response => response.json())
@@ -378,8 +425,9 @@
                       return;
                     }
                     playlist_id = data
-                    document.getElementsByClassName("choix-2")[0].style.display = 'block'
-                    document.querySelector(".choix-2 h1 .titre").innerText = `recommandation pour "${new_playlist_name}"`
+                    document.getElementsByClassName("chargement")[0].style.display = 'none'
+                    document.getElementsByClassName("choix-3")[0].style.display = 'block'
+                    document.querySelector(".choix-3 h1 .titre").innerText = `recommandation pour "${new_playlist_name}"`
                    
                   })
                   .catch(error => {
@@ -393,6 +441,7 @@
                 b2.style.color = '#a8a8a8';
                 
                 document.querySelector(".choix-3 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
+                document.getElementsByClassName("chargement")[0].style.display = 'none'
                 document.getElementsByClassName("choix-1")[0].style.display = 'none'
                 document.getElementsByClassName("choix-3")[0].style.display = 'block'
               }
@@ -400,6 +449,19 @@
               {
 
                 document.getElementsByClassName("choix-1")[0].style.display = 'none'
+                document.querySelector(".chargement .texte").innerHTML = 'Analyse de ta jolie playlist'
+                document.getElementsByClassName("chargement")[0].style.display = 'flex'
+
+                fetch(`<%= SERVER_URL %>/api/add_id_playlist_historique?playlist_id=${id}`)
+                  .then(response =>{return response.json()})
+                  .then(data => {
+
+                    if (data == -1) {
+                      console.log("la playlist n'a pas pu etre ajoutée à l'historique")
+                    }
+                  }
+                    )
+                
                 fetch(`<%= SERVER_URL %>/api/get_playlist_tracks_id?playlist_id=${id}`)
                 .then(response =>{return response.json()})
                 .then(data => {
@@ -416,7 +478,9 @@
                 playlist_id = id
                 document.querySelector(".choix-2 .title-texte").innerHTML =  `🪄A partir de son : (0/${max_nb_son})`
                 
+                document.getElementsByClassName("chargement")[0].style.display = 'none'
                 document.getElementsByClassName("choix-2")[0].style.display = 'block'
+                    
                 document.querySelector(".choix-2 h1 .titre").innerText = `recommandation pour "${name}"`
                 console.log(playlist_id)
                   }})

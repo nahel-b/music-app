@@ -4,6 +4,6 @@ node_modules/
 
 .config
 
-.save
+save/
 
 replit.nix

@@ -1,6 +1,5 @@
 const express = require("express");
 const router = express.Router();
-const spotify = require("./spotify_serveur.js");
 const database = require("./database.js");
 const deezer_client = require("./deezer_client.js");
 const spotify_serveur = require("./spotify_serveur.js");
@@ -41,7 +40,7 @@ router.get("/recherche", async (req, res) => {
   if (!song_name || !offset) {
     res.json(-1);
   } else {
-    const donnee = await spotify.envoie_recherche_musique(
+    const donnee = await spotify_serveur.envoie_recherche_musique(
       song_name,
       offset,
       limit,
@@ -113,6 +112,107 @@ router.get("/get_playlist_tracks_id", async (req, res) => {
     }
 });
 
+router.get("/add_tracks_playlist", async (req, res) => {
+
+    const playlist_id = req.query.playlist_id;
+    const tracks_id = req.query.tracks_id;
+    if (!playlist_id || !tracks_id) {
+      res.json(-1);
+      return
+    } 
+      let token = await database.getUserMusicToken(
+        req.session.utilisateur.username
+      );
+      //spotify
+      if (token[0] != -1) {
+      } else if (token[1] != -1) {
+      var tracks_deezer_id = await spotify_serveur.liste_s_to_d(tracks_id.split(','))
+      tracks_deezer_id = tracks_deezer_id.filter(element => element !== null);
+      if(tracks_deezer_id == [])
+      {
+        res.json(-1); 
+        console.log('[ERR]le son d\'id ' + tracks_id + ' n\'a pas pu etre traduit en id deezer dans la playlist d\'id ' + playlist_id + ' de ' + req.session.utilisateur.username);
+        return
+      }
+      const ajoute = await deezer_client.addTracksToDeezerPlaylist(playlist_id,tracks_deezer_id,token[1].access_token)
+      if(ajoute ==-1)
+      {
+        res.json(-1);
+        return
+      }
+      res.json(true);
+      return
+    }
+    
+  })
+
+router.get("/add_id_playlist_historique",async (req, res) => {
+  const playlist_id = req.query.playlist_id;
+  if (!playlist_id) {
+    res.json(-1);
+    return
+  } 
+  const ajoute = await database.ajouterIdPlaylistHistorique(
+    req.session.utilisateur.username,playlist_id)
+  if(ajoute == -1)
+  {
+    console.log('[ERR] la playlist d\'id ' + playlist_id + ' de l\'utilisateur ' + req.session.utilisateur.username + ' n\'a pas pu etre ajoute a la playlist historique')
+  }
+})
+
+router.get("/ajouter_track_playlist_DB",async (req, res) => {
+    const playlist_id = req.query.playlist_id;
+    const track_id = req.query.track_id;
+
+    
+    if (!playlist_id || !track_id) {
+      res.json(-1);
+      return
+    } 
+
+    const ajoute = await database.ajouterTrackPlaylistDB(req.session.utilisateur.username,playlist_id,track_id)
+    if(ajoute == -1)
+    {
+      res.json(-1);
+      return
+    }
+    res.json(true);
+    return
+  })
+
+router.get("/recommandation", async (req, res) => {
+  // Récupérer les paramètres de la requête
+  var liste_son_seed_reco = req.query.liste_son_seed_reco.split(",");
+  const offset = req.query.offset;
+  const limit = req.query.limit !== undefined ? req.query.limit : 50;
+  const playlist_id = req.query.playlist_id;
+
+  if (!liste_son_seed_reco || !offset || !playlist_id) {
+    res.json(-1);
+  } else {
+    //enlever élements déjà refusés ou dans la playlist
+    const sons_refuse = await database.getListeSonPlaylistDB(req.session.utilisateur.username,playlist_id);
+
+    //debug
+    const elementsRefuses = liste_son_seed_reco.filter(element => sons_refuse.includes(element));
+    console.log("refusée : " + elementsRefuses);
+    
+    liste_son_seed_reco = liste_son_seed_reco.filter(element => !sons_refuse.includes(element));
+
+  
+    
+    const donnee = await spotify_serveur.recommandation(
+      liste_son_seed_reco,
+      offset,
+      limit,
+    );
+    
+
+    res.json(donnee);
+  }
+});
+module.exports = router;
+
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
@@ -120,24 +220,3 @@ function shuffleArray(array) {
     }
     return array;
 }
-
-
-router.get("/recommandation", async (req, res) => {
-  // Récupérer les paramètres de la requête
-  const liste_son_seed_reco = req.query.liste_son_seed_reco.split(",");
-  const offset = req.query.offset;
-  const limit = req.query.limit !== undefined ? req.query.limit : 50;
-
-  if (!liste_son_seed_reco || !offset) {
-    res.json(-1);
-  } else {
-    const donnee = await spotify.recommandation(
-      liste_son_seed_reco,
-      offset,
-      limit,
-    );
-
-    res.json(donnee);
-  }
-});
-module.exports = router;
