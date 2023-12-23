@@ -71,7 +71,7 @@ async function getUserMusicToken(username)
 
   if(!u){return -1;}
   
-  res = [-1,-1,-1]
+  let res = [-1,-1,-1]
   if(u.spotify == -1 || u.spotify == 0){ res[0] = u.spotify }
   else
   {
@@ -81,7 +81,7 @@ async function getUserMusicToken(username)
     res[0] = {access_token : crypto_manager.decrypt(bufferData1),refresh_token : crypto_manager.decrypt(bufferData2) }
   }
 
-  if(u.deezer == -1 || u.deezer == 0){ res[0] = u.deezer }
+  if(u.deezer == -1 || u.deezer == 0){ res[1] = u.deezer }
   else
   {
     const data = JSON.parse(u.deezer);

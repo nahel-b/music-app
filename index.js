@@ -6,10 +6,10 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const crypto_manager = require('./crypto_manager.js');
 const database = require('./database.js');
-const traitement_image = require('./traitement_image.js');
 const querystring = require("querystring");
 const apiRoutes = require('./api');
 const deezer_client = require('./deezer_client.js');
+const spotify_client = require('./spotify_client.js');
 
 //require('dotenv').config();
 //const { auth_voir_admin} = require('./config.json');
@@ -277,7 +277,7 @@ app.use(async (req, res, next) => {
   
     const usernameNormalized = req.session.utilisateur.username.toLowerCase();
     const music_token = await database.getUserMusicToken(usernameNormalized)
-    if( music_token == -1 || (music_token[0] == -1) && (music_token[0] == music_token[1]) && (music_token[1] == music_token[2]) )
+    if( music_token == -1 || (music_token[0] == -1) && (music_token[1] == -1) )
     {
       res.redirect("/connexion-musique")
       return
@@ -302,20 +302,33 @@ app.get('/recommandation', async (req, res) => {
   let playlists_bibliotheque = []
   if(connecte)
   {
+    const historique_pl = await database.recupererIdPlaylistHistorique(usernameNormalized)
+    
+
     if(token[0] != -1)
     {
+      req_pl = await spotify_client.getRecentSpotifyPlaylists(usernameNormalized)
+      for(const playlist of req_pl)
+      {
+        const nm = playlist.name.toLowerCase()
+        const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
+        const pic = playlist.images[0] ? [playlist.images[0].url] : ["https://e-cdns-images.dzcdn.net/images/cover/d41d8cd98f00b204e9800998ecf8427e/528x528-000000-80-0-0.jpg"];
+        const id = playlist.id
+        if(playlists_historique.find(pl => pl.id == id) == undefined)
+        {
+          playlists_bibliotheque.push({name,pic,id})
+        }
+
+      }
       
     }
     else if(token[1] != -1)
     {
-      const historique_pl = await database.recupererIdPlaylistHistorique(usernameNormalized)
       for(const id_pl of historique_pl) 
       {
         const info_pl = await deezer_client.getDeezerPlaylist(id_pl,token[1].access_token)
         playlists_historique.push(info_pl)
       }
-      
-      
       req_pl = await deezer_client.getRecentDeezerPlaylists(usernameNormalized)
       for(const playlist of req_pl)
       {

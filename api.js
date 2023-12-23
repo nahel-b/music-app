@@ -3,7 +3,7 @@ const router = express.Router();
 const database = require("./database.js");
 const deezer_client = require("./deezer_client.js");
 const spotify_serveur = require("./spotify_serveur.js");
-const traitement_image = require("./traitement_image.js");
+const spotify_client = require("./spotify_client.js");
 
 router.use(async (req, res, next) => {
   const auth = await database.verifAuthLevel(req, res, "middlewareAPI");
@@ -62,7 +62,17 @@ router.get("/creer_playlist", async (req, res) => {
     );
 
     //spotify
-    if (token[0] != -1) {
+    if (token[0] != -1) 
+    {
+      let id_playlist = await spotify_client.createSpotifyPlaylist(playlist_name,req.session.utilisateur.username)
+      if (id_playlist == -1) {
+        res.json(-1);
+
+        return;
+      } else {
+        res.json(id_playlist);
+        return;
+      }
     } else if (token[1] != -1) {
       //deezer
       let id_playlist = await deezer_client.createDeezerPlaylist(
