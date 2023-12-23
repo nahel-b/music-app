@@ -193,20 +193,20 @@ router.get("/recommandation", async (req, res) => {
     //enlever élements déjà refusés ou dans la playlist
     const sons_refuse = await database.getListeSonPlaylistDB(req.session.utilisateur.username,playlist_id);
 
-    //debug
-    const elementsRefuses = liste_son_seed_reco.filter(element => sons_refuse.includes(element));
-    console.log("refusée : " + elementsRefuses);
     
-    liste_son_seed_reco = liste_son_seed_reco.filter(element => !sons_refuse.includes(element));
-
-  
     
-    const donnee = await spotify_serveur.recommandation(
+    let donnee = await spotify_serveur.recommandation(
       liste_son_seed_reco,
       offset,
       limit,
     );
     
+    //debug
+    const elementsRefuses = donnee.filter(element => sons_refuse.includes(element));
+    console.log("refusée : " + elementsRefuses);
+    donnee = donnee.filter(element => !sons_refuse.includes(element));
+
+
 
     res.json(donnee);
   }

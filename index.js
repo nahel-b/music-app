@@ -298,7 +298,8 @@ app.get('/recommandation', async (req, res) => {
   let token = await database.getUserMusicToken(req.session.utilisateur.username)
   const connecte = (token[0] != 0)
 
-  let playlist_list = []
+  let playlists_historique = []
+  let playlists_bibliotheque = []
   if(connecte)
   {
     if(token[0] != -1)
@@ -311,7 +312,7 @@ app.get('/recommandation', async (req, res) => {
       for(const id_pl of historique_pl) 
       {
         const info_pl = await deezer_client.getDeezerPlaylist(id_pl,token[1].access_token)
-        playlist_list.push(info_pl)
+        playlists_historique.push(info_pl)
       }
       
       
@@ -322,16 +323,16 @@ app.get('/recommandation', async (req, res) => {
         const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
         const pic = [playlist.picture_small, playlist.picture_medium, playlist.picture_big]
         const id = playlist.id
-        if(playlist_list.find(pl => pl.id == id) == undefined)
+        if(playlists_historique.find(pl => pl.id == id) == undefined)
         {
-          playlist_list.push({name,pic,id})
+          playlists_bibliotheque.push({name,pic,id})
         }
         
       }
     }
   }
   const SERVER_URL = process.env['SERVER_URL']
-  res.render('choix-recommandationv2', { erreur: null, playlist_list, connecte_musique : connecte,SERVER_URL });
+  res.render('choix-recommandationv2', { erreur: null, playlists_bibliotheque,playlists_historique, connecte_musique : connecte,SERVER_URL });
 });
 
 app.post('/recommandation', async(req,res) => 

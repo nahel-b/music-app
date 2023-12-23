@@ -190,7 +190,7 @@ async function demande_id ( query, offset, essaie_restant = 1,limit = 3) {
 
 };
 
-async function s_to_d(spotifyId,essaie_restant = 1) {
+async function s_to_d_ancien(spotifyId,essaie_restant = 1) {
 
   let spotify_server_token = await get_spotify_server_token();
 
@@ -227,6 +227,53 @@ async function s_to_d(spotifyId,essaie_restant = 1) {
         return res;
       }
     log("[ERR-RECO] s_to_d n'a pas marché pour l'id spotify: " + spotifyId);
+    return null;
+  }
+}
+
+async function s_to_d(spotifyId,essaie_restant = 1) {
+
+  let spotify_server_token = await get_spotify_server_token();
+
+
+  try {
+    // Recherche la musique sur Spotify
+    const spotifyResponse = await axios.get(`https://api.spotify.com/v1/tracks/${spotifyId}`, {
+      headers: {
+        Authorization: `Bearer ${spotify_server_token}`,
+      'Content-Type': 'application/json'
+      }
+    });
+
+    const spotifyTrack = spotifyResponse.data;
+
+    // Recherche la musique sur Deezer
+    let newTitre = spotifyTrack.name.replace(/\[.*?\]/g, '').trim();
+    newTitre = newTitre.replace(/\(.*?\)/g, '').trim()
+    let query = spotifyTrack.artists[0].name + " " + newTitre;
+    query = query.split("'").join(' ');
+
+    let url = `http://api.deezer.com/search?q=${query}&limit=1`
+    //url = encodeURIComponent(url)
+
+    const deezerResponse = await axios.get(url);
+
+
+    const deezerTrack = deezerResponse.data.data[0];
+    if (deezerTrack == null)
+    {
+      log("[ERR-RECO] s_to_d n'a pas marché pour l'id spotify: " + spotifyId);
+    }
+    return deezerTrack ? String(deezerTrack.id) : null;
+  } catch (error) {
+
+    if(essaie_restant>0)
+      {
+
+        let res = await s_to_d(spotifyId, essaie_restant-1)
+        return res;
+      }
+    log("[ERR-RECO] s_to_d n'a pas marché pour l'id spotify: " + spotifyId + "erreur : " + error);
     return null;
   }
 }
