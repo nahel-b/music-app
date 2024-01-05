@@ -190,14 +190,15 @@ app.get("/spotifycallback", async (req, res) => {
     json: true
   };
 
-  request.post(authOptions, (error, response, body) => {
+  request.post(authOptions,async (error, response, body) => {
     if (!error && response.statusCode === 200) {
-
-      const tok = {access_token : crypto_manager.encrypt(body.access_token), refresh_token : crypto_manager.encrypt(body.refresh_token)}
+      
+      const tok = {access_token : crypto_manager.encrypt(body.access_token), refresh_token : crypto_manager.encrypt(body.refresh_token),id : -1}
       database.updateUser(username, {spotify : JSON.stringify(tok)})
       //crypto.storeToken(id, body.access_token,body.refresh_token,"spotify", name)
       log(`[spotifycallback]🗂 ${username} s'est connecter avec spotify`)
-
+      const id = await spotify_client.get_user_spotify_id(username)
+      database.updateUser(username, {id_spotify : id})
     } else {
       log("[spotifycallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
       res.send('erreur')
@@ -303,10 +304,17 @@ app.get('/recommandation', async (req, res) => {
   if(connecte)
   {
     const historique_pl = await database.recupererIdPlaylistHistorique(usernameNormalized)
-    
+    const user_spotify_id = await database.getUserSpotifyId(usernameNormalized)
 
     if(token[0] != -1)
     {
+      for(const id_pl of historique_pl) 
+      {
+        const info_pl = await spotify_client.getSpotifyPlaylist(id_pl,usernameNormalized)
+        if (info_pl != -1){
+        playlists_historique.push(info_pl)
+        }
+      }
       req_pl = await spotify_client.getRecentSpotifyPlaylists(usernameNormalized)
       for(const playlist of req_pl)
       {
@@ -314,7 +322,7 @@ app.get('/recommandation', async (req, res) => {
         const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
         const pic = playlist.images[0] ? [playlist.images[0].url] : ["https://e-cdns-images.dzcdn.net/images/cover/d41d8cd98f00b204e9800998ecf8427e/528x528-000000-80-0-0.jpg"];
         const id = playlist.id
-        if(playlists_historique.find(pl => pl.id == id) == undefined)
+        if(playlists_historique.find(pl => pl.id == id) == undefined & playlist.owner.id == user_spotify_id)
         {
           playlists_bibliotheque.push({name,pic,id})
         }

@@ -63,13 +63,23 @@ async function getAuthLevelDb(username) {
   return 0
 }
 
+async function getUserSpotifyId(username){
+
+  const u = await chercherUtilisateur(username)
+  if(u)
+  {
+    return u.id_spotify
+  }
+  return null
+}
+
 async function getUserMusicToken(username)
 {
   
   
   const u = await chercherUtilisateur(username)
 
-  if(!u){return -1;}
+  if(!u){console.log("introuvable");return -1;}
   
   let res = [-1,-1,-1]
   if(u.spotify == -1 || u.spotify == 0){ res[0] = u.spotify }
@@ -96,9 +106,10 @@ async function getUserMusicToken(username)
 
 
 // Fonction pour chercher un utilisateur dans la base de données
-function chercherUtilisateur(username) {
-  return db.collection('utilisateur').findOne({ username });
-}
+function chercherUtilisateur(username_) {
+  let username = username_.toLowerCase();
+  return db.collection('utilisateur').findOne({ username  });
+};
 
 
 async function updateUser(username, updateFields) {
@@ -189,7 +200,7 @@ async function getListeSonPlaylistDB(username, playlistId) {
     // Rechercher la playlist par son ID
     const playlist = utilisateur.tracks_refuse.find(playlist => playlist.id === playlistId);
     if (!playlist) {
-      log(`Playlist non trouvée : ${playlistId}`);
+      //log(`Playlist non trouvée : ${playlistId}`);
       return [];
     }
 
@@ -253,4 +264,4 @@ async function recupererIdPlaylistHistorique(username) {
 }
 
 
-module.exports = {chercherUtilisateur,getAuthLevelDb,verifAuthLevel,updateUser,createUser,getUserMusicToken,ajouterTrackPlaylistDB,getListeSonPlaylistDB,ajouterIdPlaylistHistorique,recupererIdPlaylistHistorique}
+module.exports = {chercherUtilisateur,getAuthLevelDb,verifAuthLevel,updateUser,createUser,getUserMusicToken,ajouterTrackPlaylistDB,getListeSonPlaylistDB,ajouterIdPlaylistHistorique,recupererIdPlaylistHistorique,getUserSpotifyId}

@@ -67,7 +67,6 @@ router.get("/creer_playlist", async (req, res) => {
       let id_playlist = await spotify_client.createSpotifyPlaylist(playlist_name,req.session.utilisateur.username)
       if (id_playlist == -1) {
         res.json(-1);
-
         return;
       } else {
         res.json(id_playlist);
@@ -105,9 +104,19 @@ router.get("/get_playlist_tracks_id", async (req, res) => {
 
     //spotify
     if (token[0] != -1) {
+
+      let ids_spotify = await spotify_client.getSpotifyPlaylistTracksId(playlist_id,req.session.utilisateur.username)
+      if (ids_spotify.length > 5) {
+        const shuffledIds = shuffleArray(ids_spotify);
+        ids_spotify = shuffledIds.slice(0, 5);
+      }
+      res.json(ids_spotify)
+      return
+
+      
     } else if (token[1] != -1) {
       //deezer
-      var ids_deezer = await deezer_client.getDeezerPlaylistTracksId(playlist_id,token[1].access_token);
+      let ids_deezer = await deezer_client.getDeezerPlaylistTracksId(playlist_id,token[1].access_token);
       
       if (ids_deezer.length > 5) {
         const shuffledIds = shuffleArray(ids_deezer);
@@ -135,7 +144,15 @@ router.get("/add_tracks_playlist", async (req, res) => {
       );
       //spotify
       if (token[0] != -1) {
-      } else if (token[1] != -1) {
+        const ajoute = await spotify_client.addTracksToSpotifyPlaylist(tracks_id.split(','),playlist_id,req.session.utilisateur.username)
+        if (ajoute == -1) {
+          res.json(-1);
+          return
+        }
+        res.json(true);
+        return
+        
+      }else if (token[1] != -1) {
       var tracks_deezer_id = await spotify_serveur.liste_s_to_d(tracks_id.split(','))
       tracks_deezer_id = tracks_deezer_id.filter(element => element !== null);
       if(tracks_deezer_id == [])
