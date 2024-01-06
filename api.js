@@ -178,7 +178,7 @@ router.get("/add_id_playlist_historique",async (req, res) => {
   if (!playlist_id) {
     res.json(-1);
     console.log(
-      "[ERR] : Paramètre playlist_id manquant dans la requête /add_id_playlist_)
+      "[ERR] : Paramètre playlist_id manquant dans la requête /add_id_playlist_")
     return
   } 
   const ajoute = await database.ajouterIdPlaylistHistorique(
