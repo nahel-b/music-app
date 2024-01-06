@@ -316,6 +316,7 @@ app.get('/recommandation', async (req, res) => {
         }
       }
       req_pl = await spotify_client.getRecentSpotifyPlaylists(usernameNormalized)
+      
       for(const playlist of req_pl)
       {
         const nm = playlist.name.toLowerCase()
@@ -335,7 +336,8 @@ app.get('/recommandation', async (req, res) => {
       for(const id_pl of historique_pl) 
       {
         const info_pl = await deezer_client.getDeezerPlaylist(id_pl,token[1].access_token)
-        playlists_historique.push(info_pl)
+        if(info_pl != null){
+        playlists_historique.push(info_pl)}
       }
       req_pl = await deezer_client.getRecentDeezerPlaylists(usernameNormalized)
       for(const playlist of req_pl)

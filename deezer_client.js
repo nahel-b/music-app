@@ -78,7 +78,8 @@ async function getDeezerPlaylist(playlistId,user_token) {
         return resolve(-1);
       } else {
         const playlist = JSON.parse(body)
-
+        //console.log("playlist =" + body )
+        if(!playlist.title){ resolve( null); return}
         const nm = playlist.title.toLowerCase()
         const name = nm.length > 25 ? nm.substring(0, 35) + '...' : nm
         const pic = [playlist.picture_small, playlist.picture_medium, playlist.picture_big]
