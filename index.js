@@ -205,8 +205,8 @@ app.get("/spotifycallback", async (req, res) => {
       return
     }
   });
-
-  res.send(`
+  res.redirect("/")
+  const ancienne_page = `
   <style>
   @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
   body {
@@ -218,7 +218,7 @@ app.get("/spotifycallback", async (req, res) => {
   font-size: 2em;
   font-family: 'Rubik', sans-serif;
 
-}</style><body><div>Bien connecté à Spotify :)</div></body>`);
+}</style><body><div>Bien connecté à Spotify :)</div></body>`
 });
 
 const deezer_client_id =  process.env['deezer_client_id']
@@ -251,7 +251,7 @@ app.get("/deezercallback", async (req, res) => {
         database.updateUser(username, {deezer : JSON.stringify(tok)})
 
         log(`[deezercallback]🗂 ${username} s'est connecter avec deezer`)
-  res.send(`
+ const  page_ancienne =`
   <style>
   @import url('https://fonts.googleapis.com/css?family=Rubik:700&display=swap');
   body {
@@ -263,7 +263,9 @@ app.get("/deezercallback", async (req, res) => {
   font-size: 2em;
   font-family: 'Rubik', sans-serif;
 
-}</style><body><div>Bien connecté à deezer</div></body>`);
+}</style><body><div>Bien connecté à deezer</div></body>`
+
+        res.redirect("/")
       } else {
       log("[deezercallback] Impossible de récupérer l'access token : " + JSON.stringify(response));
         res.send('erreur')
